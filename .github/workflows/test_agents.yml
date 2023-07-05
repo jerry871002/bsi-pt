@@ -1,0 +1,30 @@
+name: Test agents' algorithms
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: macos-latest
+    
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9']
+        
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy
+          pip install scipy
+
+      - name: Test all agents
+        run: |
+          chmod +x scripts/test_agents.sh
+          scripts/test_agents.sh
