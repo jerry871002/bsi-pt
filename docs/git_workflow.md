@@ -4,17 +4,6 @@
 
 The `master` branch is protected and commits can only be added via a reviewed PR.
 
-## Resolve Conficts
-
-If the `master` branch has conflicts with your working branch, try following the follow steps to resolve the conflicts.
-
-```bash
-git fetch
-git rebase origin/master  # after this the conflicts will show up
-```
-
-If you have untracked changes, use `git stash` before `git fetch`, then `git stash pop` after `git rebase`.
-
 ## Commit Message
 
 Use all-lower-cased messages with a prefix. The prefix could be one of the following
