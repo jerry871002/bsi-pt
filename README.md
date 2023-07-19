@@ -27,7 +27,7 @@ scripts/run_exps_and_plot.sh [NUM_RUNS] [NUM_EPISODES]
 
 the figures will be generated and store in `src/fig/`, while the source data will be stored in `src/data/` and `src/csv/`.
 
-If you want to run the experiments individually or inspect each algorithm in detail, refer to [this document](src/README.md)
+If you want to run the experiments individually or inspect each algorithm in detail, see [this document](src/README.md).
 
 [^bpr]: Hernandez-Leal, Pablo, et al. "Identifying and tracking switching, non-stationary opponents: A Bayesian approach." (2016).
 [^dpn-bpr]: Zheng, Yan, et al. "Efficient policy detecting and reusing for non-stationarity in Markov games." (2021).
