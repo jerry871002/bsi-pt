@@ -1,4 +1,3 @@
-import copy
 import random
 from enum import Enum
 from typing import List, Tuple
@@ -7,7 +6,6 @@ import numpy as np
 
 from utils import normalize_distribution
 
-# State = Tuple[int, int]  # [strike, ball]
 State = List[int]
 
 
@@ -78,31 +76,12 @@ class BaseballGame:
         Returns:
             np.ndarray: The performance model.
         """
-        '''performance_model = [[0.575, 0.202, 0.203, 0.184],
-                             [0.222, 0.525, 0.176, 0.214],
-                             [0.22,  0.177, 0.528, 0.205],
-                             [0.18,  0.199, 0.194, 0.51 ]]'''
-        '''performance_model =[[0.474 ,     0.25433333 ,0.25666667 ,0.24066667],
-                            [0.28366667, 0.38733333 ,0.25       ,0.27366667],
-                            [0.27133333, 0.236      ,0.38866667 ,0.25433333],
-                            [0.27533333, 0.267      ,0.25933333 ,0.38166667]]'''
-
         performance_model = [
             [0.448, 0.254, 0.254, 0.247],
             [0.254, 0.448, 0.247, 0.254],
             [0.254, 0.247, 0.448, 0.254],
             [0.247, 0.254, 0.254, 0.448],
-        ]  # 0.95,0.85, 0.6   230220
-
-        '''performance_model =[[0.468, 0.223, 0.220, 0.233],
-                            [0.259, 0.341, 0.228, 0.227],
-                            [0.250, 0.227, 0.345, 0.217],
-                            [0.248, 0.223, 0.223, 0.354]]   #0.95,0.85, 0.6   230220'''
-
-        '''performance_model =[[0.4641, 0.2314, 0.2378, 0.2311],
-                            [0.2456, 0.3793, 0.2364, 0.2366],
-                            [0.2419, 0.2335, 0.3876, 0.2292],
-                            [0.2429, 0.2312, 0.2337, 0.3788]]'''
+        ]
 
         return np.array(performance_model)
 
@@ -286,9 +265,8 @@ class BaseballGame:
         return real_action
 
     def generate_probs(self, agent_action, op_action) -> Tuple[float, float, float]:
-        match_probs = (0.95, 0.85, 0.6)  # 0.95,0.85, 0.6   230220
+        match_probs = (0.95, 0.85, 0.6)
         mismatch_probs = tuple(0.1 + (ele - 0.5) / 5 for ele in match_probs)
-        # mismatch_probs = ()
         general_probs = (0.9, 0.7, 0.3)  # when agent action = 0 (strike all)
         if agent_action == Move.STRIKE_ALL:
             if op_action in [Move.STRIKE_1, Move.STRIKE_2, Move.STRIKE_3, Move.STRIKE_4]:
@@ -833,25 +811,6 @@ class PhiOpponent(Opponent):
                 self.policy = self.Policy.TWO
             else:
                 self.policy = random.choice(list(self.Policy))
-
-        # phi 11
-        '''elif self.phi is self.Phi.ELEVEN:
-            if (final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [Episode_result.HIT]):
-                self.policy = self.Policy.FOUR 
-            elif (final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [Episode_result.HIT]):
-                self.policy = self.Policy.TWO 
-            elif (final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [Episode_result.OUT]):
-                self.policy = self.Policy.FOUR
-            elif (final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [Episode_result.OUT]):
-                self.policy = self.Policy.TWO
-            elif (final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [Episode_result.STRIKE_OUT]):
-                self.policy = self.Policy.FOUR  
-            elif (final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [Episode_result.STRIKE_OUT]):
-                self.policy = self.Policy.TWO                 
-            elif (final_action in [Move.BALL_5, Move.BALL_6] and final_result in [Episode_result.WALK]):
-                self.policy = self.Policy.FOUR
-            elif (final_action in [Move.BALL_7, Move.BALL_8] and final_result in [Episode_result.WALK]):
-                self.policy = self.Policy.TWO'''
 
 
 class NewPhiNoiseOpponent(Opponent):

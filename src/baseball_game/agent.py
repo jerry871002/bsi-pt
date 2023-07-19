@@ -75,7 +75,6 @@ class BprAgent(Agent):
             # (2, 2) 0
             # (2, 3) 0
             if state in [[0, 0], [0, 1], [0, 2], [0, 3], [1, 2], [1, 3]]:
-                # if state in [[0, 0], [0, 1], [0, 2], [0, 3], [1, 0], [1, 1], [1, 2], [1, 3]]:
                 return Move.STRIKE_2
             else:
                 return Move.STRIKE_ALL
@@ -93,7 +92,6 @@ class BprAgent(Agent):
             # (2, 2) 0
             # (2, 3) 0
             if state in [[0, 0], [0, 1], [0, 2], [0, 3], [1, 2], [1, 3]]:
-                # if state in [[0, 0], [0, 1], [0, 2], [0, 3], [1, 0], [1, 1], [1, 2], [1, 3]]:
                 return Move.STRIKE_3
             else:
                 return Move.STRIKE_ALL
@@ -111,7 +109,6 @@ class BprAgent(Agent):
             # (2, 2) 0
             # (2, 3) 0
             if state in [[0, 0], [0, 1], [0, 2], [0, 3], [1, 2], [1, 3]]:
-                # if state in [[0, 0], [0, 1], [0, 2], [0, 3], [1, 0], [1, 1], [1, 2], [1, 3]]:
                 return Move.STRIKE_4
             else:
                 return Move.STRIKE_ALL
@@ -208,123 +205,6 @@ class DeepBprPlusAgent(BprAgent):
         belief_mul_performance = self.belief @ self.PERFORMANCE_MODEL
         candidates = np.argwhere(belief_mul_performance == np.amax(belief_mul_performance)).flatten().tolist()
         self.policy = list(self.Policy)[random.choice(candidates)]
-
-
-# class TomAgent(BprAgent):
-#     def __init__(
-#         self,
-#         x=None,
-#         y=None,
-#         confidence=0.7,
-#         l_episode=6,
-#         win_rate_threshold=0.1,
-#         adjustment_rate=0.2,
-#         indicator=1,
-#         first_order_prediction=1
-#     ):
-#         super().__init__(x, y)
-#         # the belief inherited from parent class is used as zero_order_belief
-#         self._first_order_belief = np.ones(self.n_policies) / self.n_policies
-#         self._integrated_belief = np.ones(self.n_policies) / self.n_policies
-
-#         # confidence_degree
-#         self._confidence = confidence
-
-#         # fixed legnth of episodes used to update confidence degree
-#         self.l_episode = l_episode
-#         self.win_rate_threshold = win_rate_threshold
-
-#         # adjustment rate of confidence degree
-#         self.adjustment_rate = adjustment_rate
-
-#         # Fvi indicator, used to update confidence degree
-#         self.indicator = indicator
-
-#         # initialize first order prediction
-#         self.first_order_prediction = first_order_prediction
-
-#     @property
-#     def first_order_belief(self):
-#         return self._first_order_belief
-
-#     @first_order_belief.setter
-#     def first_order_belief(self, new_belief):
-#         if not isinstance(new_belief, np.ndarray) or  new_belief.shape != (self.n_policies,):
-#             raise ValueError(f'New policy should be a numpy array with {self.n_policies} items')
-#         self._first_order_belief = new_belief
-
-#     @property
-#     def integrated_belief(self):
-#         return self._integrated_belief
-
-#     @integrated_belief.setter
-#     def integrated_belief(self, new_belief):
-#         if not isinstance(new_belief, np.ndarray) or new_belief.shape != (self.n_policies,):
-#             raise ValueError(f'New policy should be a numpy array with {self.n_policies} items')
-#         self._integrated_belief = new_belief
-
-#     @property
-#     def confidence(self):
-#         return self._confidence
-
-#     @confidence.setter
-#     def confidence(self, new_confidence):
-#         if not 0 <= new_confidence <= 1:
-#             raise ValueError(f'Confidence should be in the interval [0, 1], invalid value: {new_confidence}')
-#         self._confidence = new_confidence
-
-#     def compute_first_order_prediction(self):
-#         belief_mul_performance = self.first_order_belief @ np.transpose(self.PERFORMANCE_MODEL)
-#         candidates = np.argwhere(belief_mul_performance == np.amin(belief_mul_performance)).flatten().tolist()
-#         self.first_order_prediction = random.choice(candidates) + 1
-
-#     def compute_integrated_belief(self):
-#         for op_policy in range(self.n_policies):
-#             if op_policy == self.first_order_prediction-1:
-#                 self.integrated_belief[op_policy] = (1 - self.confidence) * self.belief[op_policy] + self.confidence
-#             else:
-#                 self.integrated_belief[op_policy] = (1 - self.confidence) * self.belief[op_policy]
-
-#     def update_policy(self):
-#         belief_mul_performance = self.integrated_belief @ self.PERFORMANCE_MODEL
-#         candidates = np.argwhere(belief_mul_performance == np.amax(belief_mul_performance)).flatten().tolist()
-#         self.policy = list(self.Policy)[random.choice(candidates)]
-
-#     def update_belief(self, current_n_episode, rewards):
-#         reward = rewards[-1]  # for calculating first-order and zero-order belief
-
-#         # update first_order_belief
-#         likelihood_pi = ((self.PERFORMANCE_MODEL[self.first_order_prediction-1]) == reward).astype(float)
-#         first_order_belief_unnormalized = likelihood_pi * self.first_order_belief / (np.sum(likelihood_pi * self.first_order_belief) + 1e-6)
-
-#         # only update first-order belief when not all beliefs are zeros
-#         if np.sum(first_order_belief_unnormalized) > 0:
-#             self.first_order_belief = normalize_distribution(
-#                 first_order_belief_unnormalized, 0.01
-#             )
-
-#         # update zero_order_belief
-#         likelihood_tau = ((self.PERFORMANCE_MODEL[:, self.policy.value-1]) == reward).astype(float)
-#         belief_unnormalized = likelihood_tau * self.belief / (np.sum(likelihood_tau * self.belief) + 1e-6)
-#         self.belief = normalize_distribution(belief_unnormalized, 0.01)
-
-#         # update confidence degree
-#         if current_n_episode > self.l_episode:
-#             win_rate = np.average((np.array(rewards[current_n_episode-self.l_episode: current_n_episode-1]) >= 0).astype(int))
-#             print(f'win rate is {win_rate}')
-#             previous_win_rate = np.average((np.array(rewards[current_n_episode-self.l_episode-1: current_n_episode-2]) >= 0).astype(int))
-#             print(f'previous win rate is {previous_win_rate}')
-#             if win_rate >= previous_win_rate and win_rate > self.win_rate_threshold:
-#                 self.confidence = ((1 - self.adjustment_rate) * self.confidence + self.adjustment_rate) * self.indicator
-#             elif win_rate < previous_win_rate and win_rate > self.win_rate_threshold:
-#                 confidence = (self.confidence * np.log(win_rate) / np.log(win_rate - self.win_rate_threshold)) * self.indicator
-#                 self.confidence = confidence if confidence <= 1 else 1
-#             else :
-#                 self.confidence = self.adjustment_rate * self.indicator
-#                 if self.indicator == 0:
-#                     self.indicator = 1
-#                 elif self.indicator == 1:
-#                     self.indicator = 0
 
 
 class BprOkrAgent(BprAgent):
