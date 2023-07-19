@@ -3,6 +3,7 @@
 ## Getting Started
 
 There are three entry points of this project
+
 - `run.py`: Run the experiment in a given scenario with an agent type
 - `run_experiment.py`: Run **multiple runs** of the experiment in a given scenario with an agent type
 - `run_exp_and_plot.py`: Run the experiments in the paper
