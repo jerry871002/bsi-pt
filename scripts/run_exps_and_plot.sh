@@ -24,8 +24,9 @@ cd src/
 
 mkdir -p logs/
 
-declare -a exp_nums=("1" "2" "3" "4" "5")
-declare -a scenarios=("grid" "nav" "soccer")
+declare -a exp_nums=("1" "2" "3")
+# declare -a scenarios=("grid" "nav" "soccer")
+declare -a scenarios=("nav")
 
 i=1
 
@@ -34,12 +35,12 @@ do
     for scenario in "${scenarios[@]}"
     do
         printf "Running experiment $exp_num on $scenario\n"
-        python run_exp_and_plot.py -e $exp_num -s $scenario -r $num_runs -n $num_episodes > logs/exp${exp_num}_${scenario}.log
+        python run_exp_and_plot.py -e $exp_num -s $scenario -r $num_runs -n $num_episodes > logs/exp${exp_num}_${scenario}.log 2>&1
 
         secs=$SECONDS
         mins=$(( secs/60 ))
         secs=$(( secs-mins*60 ))
-        printf "Experiment $exp_num on $scenario done, time elapsed: %02dm%02ds, %d%% of jobs done\n\n" $mins $secs $(( i*100/15 ))
+        printf "Experiment $exp_num on $scenario done, time elapsed: %02dm%02ds, %d%% of jobs done\n\n" $mins $secs $(( i*100/${#exp_nums[@]}/${#scenarios[@]} ))
 
         i=$(( i+1 ))
     done

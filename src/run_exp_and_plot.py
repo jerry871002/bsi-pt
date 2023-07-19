@@ -1,18 +1,3 @@
-"""
-There are four experiments to choose from
-1. BSI, BSI-PT against phi opponent
-    Plots:
-        1. Phi belief
-        2. KL divergence
-        3. Win rate
-2. All agents against phi opponents
-    Plot: cumulative rewards
-3. All agents against random switch opponents (switch interval: 1, 3 and 10)
-    Plot: episodic rewards
-4. All agents against BPR opponent
-    Plot: cumulative rewards
-"""
-
 import argparse
 from itertools import product
 from pathlib import Path
@@ -28,20 +13,41 @@ from plot import (plot_cumulative_rewards, plot_episodic_rewards,
 from run import positive_int
 from run_experiment import run_experiment
 
-
-def experiment_one(args: argparse.Namespace) -> None:
+def set_opponent_type(args: argparse.Namespace, opponent_type: str) -> None:
+    if opponent_type not in ['phi', 'new-phi', 'new-phi-noise', 'bpr']:
+        raise ValueError(f'opponent_type must be one of phi, new-phi, new-phi-noise, bpr, but got {opponent_type}')
+    
     args.new_phi_noise_opponent = False
-    args.phi_opponent = True
+    args.phi_opponent = False
     args.bpr_opponent = False
     args.new_phi_opponent = False
+
+    if opponent_type == 'phi':
+        args.phi_opponent = True
+    elif opponent_type == 'new-phi':
+        args.new_phi_opponent = True
+    elif opponent_type == 'new-phi-noise':
+        args.new_phi_noise_opponent = True
+    elif opponent_type == 'bpr':
+        args.bpr_opponent = True
+
+def experiment_one(args: argparse.Namespace) -> None:
+    """
+    BSI-PT agent against phi opponent
+    
+    Plots:
+        1. Phi belief
+    """
+    set_opponent_type(args, 'phi')
     args.q_distance = 0
-    args.p_pattern=1
-    args.agents = ['bsi', 'bsi-pt']
+    args.p_pattern = 1
+    args.agents = ['bsi-pt']
     args.data_dir = Path('data/exp_one')
 
-    N_PHI = 11
+    # we are only interested in phi_5, phi_6, phi_10, and phi_11
+    phi_range = (5, 6, 10, 11)
 
-    for phi in range(6, N_PHI + 1):
+    for phi in phi_range:
         args.phi = phi
         run_experiment(args)
 
@@ -49,218 +55,96 @@ def experiment_one(args: argparse.Namespace) -> None:
     fig_dir, csv_dir = make_fig_csv_dir('exp_one', args.scenario)
 
     # plot phi belief
-    for agent in args.agents:
-        for phi in range(6, N_PHI + 1):
-            pickle_file = pickle_dir / f'op_{phi}_phi_{args.num_runs}_runs_{args.num_episodes}_episodes.pkl'
-            df = plot_phi_beliefs(
-                pickle_file=pickle_file, agent=agent,
-                save_fig=True, filename=fig_dir / f'exp1_{args.scenario}_{agent}_belief_omega{phi}.png'
-            )
-            save_as_csv(df, csv_dir / f'exp1_{args.scenario}_{agent}_belief_omega{phi}.csv')
-
-    # plot KL divergence
-    '''for agent in args.agents:
-        df = plot_kl_divergences(
-            pickle_dir=pickle_dir, num_runs=args.num_runs, num_episodes=args.num_episodes,
-            agent=agent, save_fig=True, filename=fig_dir / f'exp1_{args.scenario}_{agent}_kl.png'
+    for agent, phi in product(args.agents, phi_range):
+        pickle_file = pickle_dir / f'op_{phi}_phi_{args.num_runs}_runs_{args.num_episodes}_episodes.pkl'
+        df = plot_phi_beliefs(
+            pickle_file=pickle_file, agent=agent,
+            save_fig=True, filename=fig_dir / f'exp1_{args.scenario}_{agent}_belief_omega{phi}.png'
         )
-        save_as_csv(df, csv_dir / f'exp1_{args.scenario}_{agent}_kl.csv')'''
-
-    # plot win rate
-    for agent in args.agents:
-        df = plot_win_rates(
-            pickle_dir=pickle_dir, num_runs=args.num_runs, num_episodes=args.num_episodes,
-            agent=agent, save_fig=True, filename=fig_dir / f'exp1_{args.scenario}_{agent}_wr.png'
-        )
-        save_as_csv(df, csv_dir / f'exp1_{args.scenario}_{agent}_wr.csv')
-
-    # policy prediction accuracy
-    '''for agent in args.agents:
-        df = plot_policy_pred_acc(
-            pickle_dir=pickle_dir, num_runs=args.num_runs, num_episodes=args.num_episodes,
-            agent=agent, save_fig=True, filename=fig_dir / f'exp1_{args.scenario}_{agent}_acc.png'
-        )
-        save_as_csv(df, csv_dir / f'exp1_{args.scenario}_{agent}_acc.csv')'''
+        save_as_csv(df, csv_dir / f'exp1_{args.scenario}_{agent}_belief_omega{phi}.csv')
 
 def experiment_two(args: argparse.Namespace) -> None:
-    args.new_phi_noise_opponent = False
-    args.phi_opponent = True
-    args.bpr_opponent = False
-    args.new_phi_opponent = False
+    """
+    BSI-PT and BPR-OKR agents against phi opponent
+    
+    Plots:
+        1. Phi belief
+        2. Accuracy
+        3. Win percentage
+    """
+    set_opponent_type(args, 'phi')
     args.q_distance = 0
-    args.p_pattern=1
-    args.agents = ['bpr+', 'deep-bpr+', 'tom', 'bpr-okr', 'bsi', 'bsi-pt']
+    args.p_pattern = 1
+    args.agents = ['bsi-pt', 'bpr-okr']
     args.data_dir = Path('data/exp_two')
 
-    # plot every phi in [PHI_START, PHI_END]
-    # e.g. PHI_START = 5 and PHI_END = 8 -> plot phi 5, 6, 7, and 8
-    PHI_START = 6
-    PHI_END = 11
+    # we are only interested in phi_5, phi_6, phi_10, and phi_11
+    phi_range = (5, 6, 10, 11)
 
-    for phi in range(PHI_START, PHI_END + 1):
+    for phi in phi_range:
         args.phi = phi
         run_experiment(args)
 
     pickle_dir = args.data_dir / args.scenario
     fig_dir, csv_dir = make_fig_csv_dir('exp_two', args.scenario)
+    
+    for agent in args.agents:
+        # plot accuracy
+        # TODO: collect accuracy data for bpr-okr
+        if 'bsi' in agent:
+            df = plot_policy_pred_acc(
+                pickle_dir=pickle_dir, num_runs=args.num_runs, num_episodes=args.num_episodes,
+                agent=agent, save_fig=True, filename=fig_dir / f'exp2_{args.scenario}_{agent}_acc.png'
+            )
+            save_as_csv(df, csv_dir / f'exp2_{args.scenario}_{agent}_acc.csv')
 
-    # plot cumulative rewards
-    for phi in range(PHI_START, PHI_END + 1):
-        pickle_file = pickle_dir / f'op_{phi}_phi_{args.num_runs}_runs_{args.num_episodes}_episodes.pkl'
-        df = plot_cumulative_rewards(
-            pickle_file=pickle_file, save_fig=True,
-            filename=fig_dir / f'exp2_{args.scenario}_utility_omega{phi}.png'
+        # plot win rate
+        df = plot_win_rates(
+            pickle_dir=pickle_dir, num_runs=args.num_runs, num_episodes=args.num_episodes,
+            agent=agent, save_fig=True, filename=fig_dir / f'exp2_{args.scenario}_{agent}_wr.png'
         )
-        save_as_csv(df, csv_dir / f'exp2_{args.scenario}_utility_omega{phi}.csv')
+        save_as_csv(df, csv_dir / f'exp2_{args.scenario}_{agent}_wr.csv')
 
 def experiment_three(args: argparse.Namespace) -> None:
-    args.new_phi_noise_opponent = False
-    args.phi_opponent = False
-    args.bpr_opponent = False
-    args.new_phi_opponent = False
+    """
+    BSI-PT, BPR-OKR, D-BPR+, BPR+ agents against phi-noise opponent (epsilon: 0, 0.2, 0.5, and 1)
+    epsilon in the paper is the complement of p_pattern in the code,
+    i.e. epsilon = 1 - p_pattern
+    
+    Plots:
+        1. Accuracy
+        2. Win percentage
+    """
+    set_opponent_type(args, 'new-phi-noise')
     args.q_distance = 0
-    args.p_pattern=1
-    args.agents = ['bpr+', 'deep-bpr+', 'tom', 'bpr-okr', 'bsi', 'bsi-pt']
+    args.agents = ['bpr+', 'deep-bpr+', 'bpr-okr', 'bsi-pt']
     args.data_dir = Path('data/exp_three')
 
-    random_switch_intervals = [1,2, 3, 4,5,6,7,8]
-
-    for interval in random_switch_intervals:
-        args.episode_reset = interval
+    epsilons = (0, 0.2, 0.5, 1)
+    for epsilon in epsilons:
+        p_pattern = 1 - epsilon
+        args.p_pattern = p_pattern
         run_experiment(args)
 
     pickle_dir = args.data_dir / args.scenario
     fig_dir, csv_dir = make_fig_csv_dir('exp_three', args.scenario)
 
-    # plot episodic rewards
-    for interval in random_switch_intervals:
-        pickle_file = pickle_dir / f'op_{interval}_random_{args.num_runs}_runs_{args.num_episodes}_episodes.pkl'
-        #df = plot_episodic_rewards(
-        df = plot_cumulative_rewards(
-            pickle_file=pickle_file, save_fig=True,
-            filename=fig_dir / f'exp3_{args.scenario}_utility_interval{interval}.png'
-        )
-        save_as_csv(df, csv_dir / f'exp3_{args.scenario}_utility_interval{interval}.csv')
-
-    # plot phi belief of phi 6 (random switch opponent)
-    for agent in ('bsi', 'bsi-pt'):
-        pickle_files = [
-            pickle_dir / f'op_{interval}_random_{args.num_runs}_runs_{args.num_episodes}_episodes.pkl'
-            for interval in random_switch_intervals
-        ]
-        labels = [
-            f'interval_{interval}' for interval in random_switch_intervals
-        ]
-        df = plot_specific_phi_beliefs(
-            pickle_files=pickle_files, labels=labels, agent=agent, phi_num=6,
-            save_fig=True, filename=fig_dir / f'exp3_{args.scenario}_{agent}_belief_omega6.png'
-        )
-        save_as_csv(df, csv_dir / f'exp3_{args.scenario}_{agent}_belief_omega6.csv')
-
-def experiment_four(args: argparse.Namespace) -> None:
-    args.new_phi_noise_opponent = False
-    args.bpr_opponent = True
-    args.phi_opponent = False
-    args.new_phi_opponent = False
-    args.q_distance = 0
-    args.p_pattern=1
-    args.agents = ['bpr+', 'deep-bpr+', 'tom', 'bpr-okr', 'bsi', 'bsi-pt']
-    args.data_dir = Path('data/exp_four')
-
-    run_experiment(args)
-
-    pickle_dir = args.data_dir / args.scenario
-    fig_dir, csv_dir = make_fig_csv_dir('exp_four', args.scenario)
-
-    # plot cumulative rewards
-    pickle_file = pickle_dir / f'op_bpr_{args.num_runs}_runs_{args.num_episodes}_episodes.pkl'
-    df = plot_cumulative_rewards(
-        pickle_file=pickle_file, save_fig=True,
-        filename=fig_dir / f'exp4_{args.scenario}_utility_BPR.png'
-    )
-    save_as_csv(df, csv_dir / f'exp4_{args.scenario}_utility_BPR.csv')
-
-    # plot phi belief
-    for agent in ('bsi', 'bsi-pt'):
-            df = plot_phi_beliefs(
-                pickle_file=pickle_file, agent=agent,
-                save_fig=True, filename=fig_dir / f'exp4_{args.scenario}_{agent}_belief.png'
+    for agent in args.agents:
+        # plot accuracy
+        # TODO: collect accuracy data for other agents
+        if 'bsi' in agent:
+            df = plot_policy_pred_acc(
+                pickle_dir=pickle_dir, num_runs=args.num_runs, num_episodes=args.num_episodes,
+                agent=agent, save_fig=True, filename=fig_dir / f'exp3_{args.scenario}_{agent}_acc.png'
             )
-            save_as_csv(df, csv_dir / f'exp4_{args.scenario}_{agent}_belief.csv')
+            save_as_csv(df, csv_dir / f'exp3_{args.scenario}_{agent}_acc.csv')
 
-def experiment_five(args: argparse.Namespace) -> None:
-    args.new_phi_noise_opponent = False
-    args.new_phi_opponent = True
-    args.bpr_opponent = False
-    args.phi_opponent = False
-    args.p_pattern=1
-    args.agents = ['bpr+', 'deep-bpr+', 'tom', 'bpr-okr', 'bsi', 'bsi-pt']
-    args.data_dir = Path('data/exp_five')
-
-    if args.scenario == 'grid':
-        q_max = 5
-    elif args.scenario == 'nav':
-        q_max = 6
-    elif args.scenario == 'soccer':
-        q_max = 4
-
-    for q_distance in range(q_max + 1):
-        args.q_distance = q_distance
-        run_experiment(args)
-
-    pickle_dir = args.data_dir / args.scenario
-    fig_dir, csv_dir = make_fig_csv_dir('exp_five', args.scenario)
-
-    # plot cumulative rewards
-    for q_distance in range(q_max + 1):
-        pickle_file = pickle_dir / f'op_new_phi_{q_distance}_q_{args.num_runs}_runs_{args.num_episodes}_episodes.pkl'
-        df = plot_cumulative_rewards(
-            pickle_file=pickle_file, save_fig=True,
-            filename=fig_dir / f'exp5_{args.scenario}_utility_q{q_distance}.png'
-        )
-        save_as_csv(df, csv_dir / f'exp5_{args.scenario}_utility_q{q_distance}.csv')
-
-    # plot phi belief with respect to corresponding phi
-    for agent in ('bsi', 'bsi-pt'):
-        df = plot_phi_belief_wrt_corr_phi_q(
-            pickle_dir=pickle_dir, num_runs=args.num_runs, num_episodes=args.num_episodes, q_end=4,  # originally q_end=q_max
-            agent=agent, save_fig=True, filename=fig_dir / f'exp5_{args.scenario}_{agent}_belief.png'
-        )
-        save_as_csv(df, csv_dir / f'exp5_{args.scenario}_{agent}_belief.csv')
-
-def experiment_six(args: argparse.Namespace) -> None:
-    args.new_phi_noise_opponent = True
-    args.new_phi_opponent = False
-    args.bpr_opponent = False
-    args.phi_opponent = False
-    args.q_distance = 0
-    args.agents = ['bpr+', 'deep-bpr+', 'tom', 'bpr-okr', 'bsi', 'bsi-pt']
-    args.data_dir = Path('data/exp_five')
-
-    p_patterns = (0.2, 0.4, 0.6, 0.8, 1)
-    for p_pattern in p_patterns:
-        args.p_pattern = p_pattern
-        run_experiment(args)
-
-    pickle_dir = args.data_dir / args.scenario
-    fig_dir, csv_dir = make_fig_csv_dir('exp_six', args.scenario)
-
-    # plot cumulative rewards
-    for p_pattern in p_patterns:
-        pickle_file = pickle_dir / f'op_new_phi_{p_pattern}_p_{args.num_runs}_runs_{args.num_episodes}_episodes.pkl'
-        df = plot_cumulative_rewards(
-            pickle_file=pickle_file, save_fig=True,
-            filename=fig_dir / f'exp6_{args.scenario}_utility_p_{p_pattern}.png'
-        )
-        save_as_csv(df, csv_dir / f'exp6_{args.scenario}_utility_p_{p_pattern}.csv')
-
-    # plot phi belief with respect to corresponding phi
-    for agent in ('bsi', 'bsi-pt'):
-        df = plot_phi_belief_wrt_corr_phi_p(
+        # plot win rate
+        df = plot_win_rates(
             pickle_dir=pickle_dir, num_runs=args.num_runs, num_episodes=args.num_episodes,
-            agent=agent, save_fig=True, filename=fig_dir / f'exp6_{args.scenario}_{agent}_belief.png'
+            agent=agent, save_fig=True, filename=fig_dir / f'exp3_{args.scenario}_{agent}_wr.png'
         )
-        save_as_csv(df, csv_dir / f'exp6_{args.scenario}_{agent}_belief.csv')
+        save_as_csv(df, csv_dir / f'exp3_{args.scenario}_{agent}_wr.csv')
 
 def save_as_csv(df: pd.DataFrame, filename: Path):
     df.insert(loc=0, column='episode', value=df.index+1)
@@ -308,15 +192,14 @@ if __name__ == '__main__':
     )
 
     args = parser.parse_args()
-    args.multi_processing = False  # always use multi-processing to save time
+    # always use multi-processing to save time
+    # turn it to False if you need to debug
+    args.multi_processing = False
 
     experiments = {
         1: experiment_one,
         2: experiment_two,
         3: experiment_three,
-        4: experiment_four,
-        5: experiment_five,
-        6: experiment_six
     }
 
     for exp_num, scenario in product(args.exp_nums, args.scenarios):
