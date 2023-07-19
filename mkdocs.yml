@@ -1,4 +1,4 @@
-site_name: BSI Experiments Development
+site_name: BSI-PT Documentation
 theme:
   name: material
   palette:
@@ -12,3 +12,5 @@ theme:
       toggle:
         icon: material/weather-sunny
         name: Switch to light mode
+markdown_extensions:
+  - footnotes
