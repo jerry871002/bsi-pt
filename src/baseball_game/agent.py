@@ -57,7 +57,7 @@ class BprAgent(Agent):
             # (2, 2) 0
             # (2, 3) 0
             if state in [[0, 0], [0, 1], [0, 2], [0, 3], [1, 2], [1, 3]]:
-            #if state in [[0, 0], [0, 1], [0, 2], [0, 3], [1, 0], [1, 1], [1, 2], [1, 3]]:
+                # if state in [[0, 0], [0, 1], [0, 2], [0, 3], [1, 0], [1, 1], [1, 2], [1, 3]]:
                 return Move.STRIKE_1
             else:
                 return Move.STRIKE_ALL
@@ -75,7 +75,7 @@ class BprAgent(Agent):
             # (2, 2) 0
             # (2, 3) 0
             if state in [[0, 0], [0, 1], [0, 2], [0, 3], [1, 2], [1, 3]]:
-            #if state in [[0, 0], [0, 1], [0, 2], [0, 3], [1, 0], [1, 1], [1, 2], [1, 3]]:
+                # if state in [[0, 0], [0, 1], [0, 2], [0, 3], [1, 0], [1, 1], [1, 2], [1, 3]]:
                 return Move.STRIKE_2
             else:
                 return Move.STRIKE_ALL
@@ -93,7 +93,7 @@ class BprAgent(Agent):
             # (2, 2) 0
             # (2, 3) 0
             if state in [[0, 0], [0, 1], [0, 2], [0, 3], [1, 2], [1, 3]]:
-            #if state in [[0, 0], [0, 1], [0, 2], [0, 3], [1, 0], [1, 1], [1, 2], [1, 3]]:
+                # if state in [[0, 0], [0, 1], [0, 2], [0, 3], [1, 0], [1, 1], [1, 2], [1, 3]]:
                 return Move.STRIKE_3
             else:
                 return Move.STRIKE_ALL
@@ -111,7 +111,7 @@ class BprAgent(Agent):
             # (2, 2) 0
             # (2, 3) 0
             if state in [[0, 0], [0, 1], [0, 2], [0, 3], [1, 2], [1, 3]]:
-            #if state in [[0, 0], [0, 1], [0, 2], [0, 3], [1, 0], [1, 1], [1, 2], [1, 3]]:
+                # if state in [[0, 0], [0, 1], [0, 2], [0, 3], [1, 0], [1, 1], [1, 2], [1, 3]]:
                 return Move.STRIKE_4
             else:
                 return Move.STRIKE_ALL
@@ -132,10 +132,8 @@ class BprAgent(Agent):
                 return Move.STRIKE_1
             else:
                 return Move.STRIKE_ALL
-        
-        raise ValueError(
-            f'BprAgent with policy {self._policy}'
-        )
+
+        raise ValueError(f'BprAgent with policy {self._policy}')
 
 
 class BprPlusAgent(BprAgent):
@@ -146,7 +144,7 @@ class BprPlusAgent(BprAgent):
         # posterior (belief) = prior * likelihood (performance model)
 
         likelihood = np.reciprocal(
-            (np.abs((self.PERFORMANCE_MODEL[:, self.policy.value-1]) - utility) + 1).astype(float)
+            (np.abs((self.PERFORMANCE_MODEL[:, self.policy.value - 1]) - utility) + 1).astype(float)
         )
         likelihood /= np.sum(likelihood)
         belief_unnormalized = likelihood * self.belief / (np.sum(likelihood * self.belief) + 1e-6)
@@ -198,10 +196,12 @@ class DeepBprPlusAgent(BprAgent):
     def update_belief(self, utility: int):
         # posterior (belief) = prior * likelihood (performance model)
         likelihood = np.reciprocal(
-            (np.abs((self.PERFORMANCE_MODEL[:, self.policy.value-1]) - utility) + 1).astype(float)
+            (np.abs((self.PERFORMANCE_MODEL[:, self.policy.value - 1]) - utility) + 1).astype(float)
         )
         likelihood /= np.sum(likelihood)
-        belief_unnormalized = self.tau_hat * likelihood * self.belief / (np.sum(self.tau_hat * likelihood * self.belief) + 1e-6)
+        belief_unnormalized = (
+            self.tau_hat * likelihood * self.belief / (np.sum(self.tau_hat * likelihood * self.belief) + 1e-6)
+        )
         self.belief = normalize_distribution(belief_unnormalized, 0.001)
 
     def update_policy(self):
@@ -363,7 +363,7 @@ class BprOkrAgent(BprAgent):
         posterior (belief) = prior * likelihood (performance model)
 
         Args:
-            utility (int): The agent's total rewards in a episode. 
+            utility (int): The agent's total rewards in a episode.
         """
         # when the agent switches its policy within an epsode
         # we might obtain an utility thats not in the performance model
@@ -375,7 +375,7 @@ class BprOkrAgent(BprAgent):
         # reciprocal([148, 2, 148, 150]) = [0.0068, 0.5, 0.0068, 0.0067]
         # normalize([0.0068, 0.5, 0.0068, 0.0067]) = [0.013, 0.961, 0.013, 0.01288]
         likelihood = np.reciprocal(
-            (np.abs((self.PERFORMANCE_MODEL[:, self.policy.value-1]) - utility) + 1).astype(float)
+            (np.abs((self.PERFORMANCE_MODEL[:, self.policy.value - 1]) - utility) + 1).astype(float)
         )
         likelihood /= np.sum(likelihood)
         belief_unnormalized = likelihood * self.belief / (np.sum(likelihood * self.belief) + 1e-6)
@@ -390,12 +390,9 @@ class BprOkrAgent(BprAgent):
     def update_policy(self, integrated_belief: bool = False):
         if integrated_belief:
             self.intra_belief_model.intra_belief = (
-                self.rho * self.belief +
-                (1 - self.rho) * self.intra_belief_model.intra_belief
+                self.rho * self.belief + (1 - self.rho) * self.intra_belief_model.intra_belief
             )
-            self.intra_belief_model.intra_belief = normalize_distribution(
-                self.intra_belief_model.intra_belief, 0.001
-            )
+            self.intra_belief_model.intra_belief = normalize_distribution(self.intra_belief_model.intra_belief, 0.001)
 
         # when belief * performance model has same values within the results
         # `np.argmax` will always choose the one that has the smaller index
@@ -411,7 +408,7 @@ class BsiBaseAgent(BprAgent):
         super().__init__(x, y)
 
         # initialize phi belief
-        n_tau = len(PhiOpponent.Phi) - 3 # there are three phi uknown to the agent
+        n_tau = len(PhiOpponent.Phi) - 3  # there are three phi uknown to the agent
         self._phi_belief = np.ones(n_tau) / n_tau
 
         # initialize intra-episode belief model
@@ -419,17 +416,20 @@ class BsiBaseAgent(BprAgent):
         self.intra_belief_model = IntraBeliefModel(n_policies=self.n_policies, l=l)
 
         # all 4 phi opponents starts the first episode by randomly choose a policy tau
-        self.op_strategy_model = np.array([
-            [1, 0, 0, 0],  # phi 1: opponent always uses tau 1
-            [0, 1, 0, 0],  # phi 2: opponent always uses tau 2
-            [0, 0, 1, 0],  # phi 3: opponent always uses tau 3
-            [0, 0, 0, 1],  # phi 4: opponent always uses tau 4
-            [0.25, 0.25, 0.25, 0.25],  # phi 5: opponent always uses random switching
-            [0, 0, 0, 0],  # phi 6
-            [0, 0, 0, 0],  # phi 7
-            [0, 0, 0, 0],  # phi 8
-            [0, 0, 0, 0],  # phi 9
-        ], dtype=np.float64)
+        self.op_strategy_model = np.array(
+            [
+                [1, 0, 0, 0],  # phi 1: opponent always uses tau 1
+                [0, 1, 0, 0],  # phi 2: opponent always uses tau 2
+                [0, 0, 1, 0],  # phi 3: opponent always uses tau 3
+                [0, 0, 0, 1],  # phi 4: opponent always uses tau 4
+                [0.25, 0.25, 0.25, 0.25],  # phi 5: opponent always uses random switching
+                [0, 0, 0, 0],  # phi 6
+                [0, 0, 0, 0],  # phi 7
+                [0, 0, 0, 0],  # phi 8
+                [0, 0, 0, 0],  # phi 9
+            ],
+            dtype=np.float64,
+        )
 
         self.observation_model = None  # need to initialize through `set_observation_model`
         self.sigma_queue = []
@@ -456,28 +456,37 @@ class BsiBaseAgent(BprAgent):
 
         # phi 6
         # if (3478 hit/walk) or (1256 out/strike_out) or (78 walk)
-        if (final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_reward > 0) \
-            or (final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_reward <= 0):
+        if (final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_reward > 0) or (
+            final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_reward <= 0
+        ):
             self.op_strategy_model[5] = [1, 0, 0, 0]
         else:
             self.op_strategy_model[5] = [0, 0, 1, 0]
         # phi 7
         # if (3478 hit/walk) or (1256 out/strike_out) or (78 walk)
-        if (final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_reward > 0) \
-            or (final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_reward <= 0):
-                self.op_strategy_model[6] = [0, 0, 0, 1]
+        if (final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_reward > 0) or (
+            final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_reward <= 0
+        ):
+            self.op_strategy_model[6] = [0, 0, 0, 1]
         else:
             self.op_strategy_model[6] = [0, 1, 0, 0]
         # phi 8
         # if (1256 hit) or (1256 stirke out)
-        if (final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_reward > 0 and final_state[1]<4) \
-            or (final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_reward <= 0 and final_state[0] < 3):              
+        if (
+            final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6]
+            and final_reward > 0
+            and final_state[1] < 4
+        ) or (
+            final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8]
+            and final_reward <= 0
+            and final_state[0] < 3
+        ):
             self.op_strategy_model[7] = [1, 0, 0, 0]
         else:
             self.op_strategy_model[7] = [0, 0, 1, 0]
         # phi 9
         # if hit/walk
-        if (final_reward > 0):
+        if final_reward > 0:
             self.op_strategy_model[8] = [0, 0, 0, 1]
         else:
             self.op_strategy_model[8] = [0, 0, 1, 0]
@@ -500,7 +509,7 @@ class BsiBaseAgent(BprAgent):
         # directly use the observation model in intra_belief_model instead of using the terminal state as the parameter
         observation_model = self.intra_belief_model.prob_experience_queue()
         phi_belief_unnormalized = observation_model @ self.op_strategy_model.transpose() * self.phi_belief
-        self.phi_belief = normalize_distribution(phi_belief_unnormalized, 0.0001)  #0.0001  #0.01
+        self.phi_belief = normalize_distribution(phi_belief_unnormalized, 0.0001)  # 0.0001  #0.01
 
     def infer_tau(self):
         """
@@ -508,16 +517,13 @@ class BsiBaseAgent(BprAgent):
         Use the inferred tau as the inter-epidose belief and set it as initial intra-episode belief.
         """
 
-        
         if len(self.sigma_queue) <= 1:
-                return
+            return
 
         sigma = self.sigma_queue[-1]
         self.update_op_strategy_model(sigma)
 
         self.belief = self.phi_belief @ self.op_strategy_model
-
-        
 
     def add_experience_queue(self, state: State, opponent_action: Move):
         self.intra_belief_model.add_experience_queue(state, opponent_action)
@@ -563,10 +569,9 @@ class BsiPtAgent(BsiBaseAgent):
         Use the inferred tau as the inter-epidose belief and set it as initial intra-episode belief.
         """
         super().infer_tau()
-        
-        #self.belief = np.ones(4)/4 * 0.4 + self.belief * 0.6
-        self.intra_belief_model.intra_belief = self.belief
 
+        # self.belief = np.ones(4)/4 * 0.4 + self.belief * 0.6
+        self.intra_belief_model.intra_belief = self.belief
 
     def infer_tau2(self):
         """
@@ -574,8 +579,7 @@ class BsiPtAgent(BsiBaseAgent):
         """
 
         self.intra_belief_model.intra_belief = self.belief
-        
-        
+
     def update_intra_belief(self) -> None:
         """
         Update intra-episode belief using the state-action pairs
@@ -592,12 +596,9 @@ class BsiPtAgent(BsiBaseAgent):
     def update_policy(self, integrated_belief: bool = False):
         if integrated_belief:
             self.intra_belief_model.intra_belief = (
-                self.rho * self.belief +
-                (1 - self.rho) * self.intra_belief_model.intra_belief
+                self.rho * self.belief + (1 - self.rho) * self.intra_belief_model.intra_belief
             )
-            self.intra_belief_model.intra_belief = normalize_distribution(
-                self.intra_belief_model.intra_belief, 0.01
-            )
+            self.intra_belief_model.intra_belief = normalize_distribution(self.intra_belief_model.intra_belief, 0.01)
 
         # when belief * performance model has same values within the results
         # `np.argmax` will always choose the one that has the smaller index
@@ -605,9 +606,8 @@ class BsiPtAgent(BsiBaseAgent):
         # now we fix it to randomly choose between those who have the same values
         belief_mul_performance = self.intra_belief_model.intra_belief @ self.PERFORMANCE_MODEL
         candidates = np.argwhere(belief_mul_performance == np.amax(belief_mul_performance)).flatten().tolist()
-        #print('123',belief_mul_performance,candidates)
+        # print('123',belief_mul_performance,candidates)
         self.policy = list(self.Policy)[random.choice(candidates)]
-
 
 
 class IntraBeliefModel:
@@ -633,9 +633,7 @@ class IntraBeliefModel:
         See equation (8) in the OKR paper.
         """
         p_q_tau = self.prob_experience_queue()
-        self.intra_belief = (
-            (p_q_tau * self.intra_belief) / np.sum(p_q_tau * self.intra_belief)
-        )
+        self.intra_belief = (p_q_tau * self.intra_belief) / np.sum(p_q_tau * self.intra_belief)
         self.intra_belief = normalize_distribution(self.intra_belief, 0.001)
 
     def reset_intra_belief(self) -> None:
@@ -650,7 +648,7 @@ class IntraBeliefModel:
             np.ndarray: The probability of generating this experience queue using each tau.
         """
         sum_of_logs = np.zeros((self.n_policies,))
-        for state, action in self.experience_queue[-self.l:]:
+        for state, action in self.experience_queue[-self.l :]:
             sum_of_logs += np.log(0.1 + np.array(self.opponent_model(state, action)))
         exp_sum_of_logs = np.exp(sum_of_logs)
         return exp_sum_of_logs / np.sum(exp_sum_of_logs)
@@ -674,78 +672,353 @@ class IntraBeliefModel:
             Tuple[int, int, int, int]: Each element indicate the probability of a tau.
         """
 
-        action_control_constant_mu1 = 0.6 # mu1: probability of the action that is most likely to happen
-        mu2 = (1 - action_control_constant_mu1) / 16 # define the probability of other less likely actions
-        situation1 = np.array([[action_control_constant_mu1, 4*mu2, 4*mu2, 4*mu2, mu2, mu2, mu2, mu2],
-                               [4*mu2, action_control_constant_mu1, 4*mu2, 4*mu2, mu2, mu2, mu2, mu2],
-                               [4*mu2, 4*mu2, action_control_constant_mu1, 4*mu2, mu2, mu2, mu2, mu2],
-                               [4*mu2, 4*mu2, 4*mu2, action_control_constant_mu1, mu2, mu2, mu2, mu2]])
-        situation2 = np.array([[4*mu2, 1*mu2, 1*mu2, 1*mu2, action_control_constant_mu1, 4*mu2, 4*mu2, 1*mu2],
-                               [1*mu2, 4*mu2, 1*mu2, 1*mu2, 4*mu2, action_control_constant_mu1, 1*mu2, 4*mu2],
-                               [1*mu2, 1*mu2, 4*mu2, 1*mu2, 4*mu2, 1*mu2, action_control_constant_mu1, 4*mu2],
-                               [1*mu2, 1*mu2, 1*mu2, 4*mu2, 1*mu2, 4*mu2, 4*mu2, action_control_constant_mu1]])
-        situation3 = np.array([[mu2, mu2, mu2, mu2, action_control_constant_mu1, 4*mu2, 4*mu2, 4*mu2],
-                               [mu2, mu2, mu2, mu2, 4*mu2, action_control_constant_mu1, 4*mu2, 4*mu2],
-                               [mu2, mu2, mu2, mu2, 4*mu2, 4*mu2, action_control_constant_mu1, 4*mu2],
-                               [mu2, mu2, mu2, mu2, 4*mu2, 4*mu2, 4*mu2, action_control_constant_mu1]])
+        action_control_constant_mu1 = 0.6  # mu1: probability of the action that is most likely to happen
+        mu2 = (1 - action_control_constant_mu1) / 16  # define the probability of other less likely actions
+        situation1 = np.array(
+            [
+                [action_control_constant_mu1, 4 * mu2, 4 * mu2, 4 * mu2, mu2, mu2, mu2, mu2],
+                [4 * mu2, action_control_constant_mu1, 4 * mu2, 4 * mu2, mu2, mu2, mu2, mu2],
+                [4 * mu2, 4 * mu2, action_control_constant_mu1, 4 * mu2, mu2, mu2, mu2, mu2],
+                [4 * mu2, 4 * mu2, 4 * mu2, action_control_constant_mu1, mu2, mu2, mu2, mu2],
+            ]
+        )
+        situation2 = np.array(
+            [
+                [4 * mu2, 1 * mu2, 1 * mu2, 1 * mu2, action_control_constant_mu1, 4 * mu2, 4 * mu2, 1 * mu2],
+                [1 * mu2, 4 * mu2, 1 * mu2, 1 * mu2, 4 * mu2, action_control_constant_mu1, 1 * mu2, 4 * mu2],
+                [1 * mu2, 1 * mu2, 4 * mu2, 1 * mu2, 4 * mu2, 1 * mu2, action_control_constant_mu1, 4 * mu2],
+                [1 * mu2, 1 * mu2, 1 * mu2, 4 * mu2, 1 * mu2, 4 * mu2, 4 * mu2, action_control_constant_mu1],
+            ]
+        )
+        situation3 = np.array(
+            [
+                [mu2, mu2, mu2, mu2, action_control_constant_mu1, 4 * mu2, 4 * mu2, 4 * mu2],
+                [mu2, mu2, mu2, mu2, 4 * mu2, action_control_constant_mu1, 4 * mu2, 4 * mu2],
+                [mu2, mu2, mu2, mu2, 4 * mu2, 4 * mu2, action_control_constant_mu1, 4 * mu2],
+                [mu2, mu2, mu2, mu2, 4 * mu2, 4 * mu2, 4 * mu2, action_control_constant_mu1],
+            ]
+        )
 
         if state in [[0, 0], [0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 2], [2, 3]]:
             ball_control_k1 = 1
-            ball_control_k2 = (1-ball_control_k1)/14
+            ball_control_k2 = (1 - ball_control_k1) / 14
             if opponent_action == Move.STRIKE_1:
-                return situation1 @ np.array([ball_control_k1, 3*ball_control_k2, 3*ball_control_k2, 2*ball_control_k2, 3*ball_control_k2, ball_control_k2, ball_control_k2, ball_control_k2])
+                return situation1 @ np.array(
+                    [
+                        ball_control_k1,
+                        3 * ball_control_k2,
+                        3 * ball_control_k2,
+                        2 * ball_control_k2,
+                        3 * ball_control_k2,
+                        ball_control_k2,
+                        ball_control_k2,
+                        ball_control_k2,
+                    ]
+                )
             elif opponent_action == Move.STRIKE_2:
-                return situation1 @ np.array([3*ball_control_k2, ball_control_k1, 2*ball_control_k2, 3*ball_control_k2, ball_control_k2, 3*ball_control_k2, ball_control_k2, ball_control_k2])
+                return situation1 @ np.array(
+                    [
+                        3 * ball_control_k2,
+                        ball_control_k1,
+                        2 * ball_control_k2,
+                        3 * ball_control_k2,
+                        ball_control_k2,
+                        3 * ball_control_k2,
+                        ball_control_k2,
+                        ball_control_k2,
+                    ]
+                )
             elif opponent_action == Move.STRIKE_3:
-                return situation1 @ np.array([3*ball_control_k2, 2*ball_control_k2, ball_control_k1, 3*ball_control_k2, ball_control_k2, ball_control_k2, 3*ball_control_k2, ball_control_k2])
+                return situation1 @ np.array(
+                    [
+                        3 * ball_control_k2,
+                        2 * ball_control_k2,
+                        ball_control_k1,
+                        3 * ball_control_k2,
+                        ball_control_k2,
+                        ball_control_k2,
+                        3 * ball_control_k2,
+                        ball_control_k2,
+                    ]
+                )
             elif opponent_action == Move.STRIKE_4:
-                return situation1 @ np.array([2*ball_control_k2, 3*ball_control_k2, 3*ball_control_k2, ball_control_k1, ball_control_k2, ball_control_k2, ball_control_k2, 3*ball_control_k2])
+                return situation1 @ np.array(
+                    [
+                        2 * ball_control_k2,
+                        3 * ball_control_k2,
+                        3 * ball_control_k2,
+                        ball_control_k1,
+                        ball_control_k2,
+                        ball_control_k2,
+                        ball_control_k2,
+                        3 * ball_control_k2,
+                    ]
+                )
             elif opponent_action == Move.BALL_5:
-                return situation1 @ np.array([3*ball_control_k2, 2*ball_control_k2, 2*ball_control_k2, 2*ball_control_k2, ball_control_k1, 3*ball_control_k2, 3*ball_control_k2, ball_control_k2])
+                return situation1 @ np.array(
+                    [
+                        3 * ball_control_k2,
+                        2 * ball_control_k2,
+                        2 * ball_control_k2,
+                        2 * ball_control_k2,
+                        ball_control_k1,
+                        3 * ball_control_k2,
+                        3 * ball_control_k2,
+                        ball_control_k2,
+                    ]
+                )
             elif opponent_action == Move.BALL_6:
-                return situation1 @ np.array([2*ball_control_k2, 3*ball_control_k2, 2*ball_control_k2, 2*ball_control_k2, 3*ball_control_k2, ball_control_k1, ball_control_k2, 3*ball_control_k2])
+                return situation1 @ np.array(
+                    [
+                        2 * ball_control_k2,
+                        3 * ball_control_k2,
+                        2 * ball_control_k2,
+                        2 * ball_control_k2,
+                        3 * ball_control_k2,
+                        ball_control_k1,
+                        ball_control_k2,
+                        3 * ball_control_k2,
+                    ]
+                )
             elif opponent_action == Move.BALL_7:
-                return situation1 @ np.array([2*ball_control_k2, 2*ball_control_k2, 3*ball_control_k2, 2*ball_control_k2, 3*ball_control_k2, ball_control_k2, ball_control_k1, 3*ball_control_k2])
+                return situation1 @ np.array(
+                    [
+                        2 * ball_control_k2,
+                        2 * ball_control_k2,
+                        3 * ball_control_k2,
+                        2 * ball_control_k2,
+                        3 * ball_control_k2,
+                        ball_control_k2,
+                        ball_control_k1,
+                        3 * ball_control_k2,
+                    ]
+                )
             elif opponent_action == Move.BALL_8:
-                return situation1 @ np.array([2*ball_control_k2, 2*ball_control_k2, 2*ball_control_k2, 3*ball_control_k2, ball_control_k2, 3*ball_control_k2, 3*ball_control_k2, ball_control_k1])
+                return situation1 @ np.array(
+                    [
+                        2 * ball_control_k2,
+                        2 * ball_control_k2,
+                        2 * ball_control_k2,
+                        3 * ball_control_k2,
+                        ball_control_k2,
+                        3 * ball_control_k2,
+                        3 * ball_control_k2,
+                        ball_control_k1,
+                    ]
+                )
         elif state in [[1, 0], [1, 1]]:
             ball_control_k1 = 1
-            ball_control_k2 = (1-ball_control_k1)/16
+            ball_control_k2 = (1 - ball_control_k1) / 16
             if opponent_action == Move.STRIKE_1:
-                return situation2 @ np.array([ball_control_k1, 3*ball_control_k2, 3*ball_control_k2, 2*ball_control_k2, 3*ball_control_k2, ball_control_k2, ball_control_k2, ball_control_k2])
+                return situation2 @ np.array(
+                    [
+                        ball_control_k1,
+                        3 * ball_control_k2,
+                        3 * ball_control_k2,
+                        2 * ball_control_k2,
+                        3 * ball_control_k2,
+                        ball_control_k2,
+                        ball_control_k2,
+                        ball_control_k2,
+                    ]
+                )
             elif opponent_action == Move.STRIKE_2:
-                return situation2 @ np.array([3*ball_control_k2, ball_control_k1, 2*ball_control_k2, 3*ball_control_k2, ball_control_k2, 3*ball_control_k2, ball_control_k2, ball_control_k2])
+                return situation2 @ np.array(
+                    [
+                        3 * ball_control_k2,
+                        ball_control_k1,
+                        2 * ball_control_k2,
+                        3 * ball_control_k2,
+                        ball_control_k2,
+                        3 * ball_control_k2,
+                        ball_control_k2,
+                        ball_control_k2,
+                    ]
+                )
             elif opponent_action == Move.STRIKE_3:
-                return situation2 @ np.array([3*ball_control_k2, 2*ball_control_k2, ball_control_k1, 3*ball_control_k2, ball_control_k2, ball_control_k2, 3*ball_control_k2, ball_control_k2])
+                return situation2 @ np.array(
+                    [
+                        3 * ball_control_k2,
+                        2 * ball_control_k2,
+                        ball_control_k1,
+                        3 * ball_control_k2,
+                        ball_control_k2,
+                        ball_control_k2,
+                        3 * ball_control_k2,
+                        ball_control_k2,
+                    ]
+                )
             elif opponent_action == Move.STRIKE_4:
-                return situation2 @ np.array([2*ball_control_k2, 3*ball_control_k2, 3*ball_control_k2, ball_control_k1, ball_control_k2, ball_control_k2, ball_control_k2, 3*ball_control_k2])
+                return situation2 @ np.array(
+                    [
+                        2 * ball_control_k2,
+                        3 * ball_control_k2,
+                        3 * ball_control_k2,
+                        ball_control_k1,
+                        ball_control_k2,
+                        ball_control_k2,
+                        ball_control_k2,
+                        3 * ball_control_k2,
+                    ]
+                )
             elif opponent_action == Move.BALL_5:
-                return situation2 @ np.array([3*ball_control_k2, 2*ball_control_k2, 2*ball_control_k2, 2*ball_control_k2, ball_control_k1, 3*ball_control_k2, 3*ball_control_k2, ball_control_k2])
+                return situation2 @ np.array(
+                    [
+                        3 * ball_control_k2,
+                        2 * ball_control_k2,
+                        2 * ball_control_k2,
+                        2 * ball_control_k2,
+                        ball_control_k1,
+                        3 * ball_control_k2,
+                        3 * ball_control_k2,
+                        ball_control_k2,
+                    ]
+                )
             elif opponent_action == Move.BALL_6:
-                return situation2 @ np.array([2*ball_control_k2, 3*ball_control_k2, 2*ball_control_k2, 2*ball_control_k2, 3*ball_control_k2, ball_control_k1, ball_control_k2, 3*ball_control_k2])
+                return situation2 @ np.array(
+                    [
+                        2 * ball_control_k2,
+                        3 * ball_control_k2,
+                        2 * ball_control_k2,
+                        2 * ball_control_k2,
+                        3 * ball_control_k2,
+                        ball_control_k1,
+                        ball_control_k2,
+                        3 * ball_control_k2,
+                    ]
+                )
             elif opponent_action == Move.BALL_7:
-                return situation2 @ np.array([2*ball_control_k2, 2*ball_control_k2, 3*ball_control_k2, 2*ball_control_k2, 3*ball_control_k2, ball_control_k2, ball_control_k1, 3*ball_control_k2])
+                return situation2 @ np.array(
+                    [
+                        2 * ball_control_k2,
+                        2 * ball_control_k2,
+                        3 * ball_control_k2,
+                        2 * ball_control_k2,
+                        3 * ball_control_k2,
+                        ball_control_k2,
+                        ball_control_k1,
+                        3 * ball_control_k2,
+                    ]
+                )
             elif opponent_action == Move.BALL_8:
-                return situation2 @ np.array([2*ball_control_k2, 2*ball_control_k2, 2*ball_control_k2, 3*ball_control_k2, ball_control_k2, 3*ball_control_k2, 3*ball_control_k2, ball_control_k1])
+                return situation2 @ np.array(
+                    [
+                        2 * ball_control_k2,
+                        2 * ball_control_k2,
+                        2 * ball_control_k2,
+                        3 * ball_control_k2,
+                        ball_control_k2,
+                        3 * ball_control_k2,
+                        3 * ball_control_k2,
+                        ball_control_k1,
+                    ]
+                )
         elif state in [[2, 0], [2, 1]]:
             ball_control_k1 = 1
-            ball_control_k2 = (1-ball_control_k1)/16
+            ball_control_k2 = (1 - ball_control_k1) / 16
             if opponent_action == Move.STRIKE_1:
-                return situation3 @ np.array([ball_control_k1, 3*ball_control_k2, 3*ball_control_k2, 2*ball_control_k2, 3*ball_control_k2, ball_control_k2, ball_control_k2, ball_control_k2])
+                return situation3 @ np.array(
+                    [
+                        ball_control_k1,
+                        3 * ball_control_k2,
+                        3 * ball_control_k2,
+                        2 * ball_control_k2,
+                        3 * ball_control_k2,
+                        ball_control_k2,
+                        ball_control_k2,
+                        ball_control_k2,
+                    ]
+                )
             elif opponent_action == Move.STRIKE_2:
-                return situation3 @ np.array([3*ball_control_k2, ball_control_k1, 2*ball_control_k2, 3*ball_control_k2, ball_control_k2, 3*ball_control_k2, ball_control_k2, ball_control_k2])
+                return situation3 @ np.array(
+                    [
+                        3 * ball_control_k2,
+                        ball_control_k1,
+                        2 * ball_control_k2,
+                        3 * ball_control_k2,
+                        ball_control_k2,
+                        3 * ball_control_k2,
+                        ball_control_k2,
+                        ball_control_k2,
+                    ]
+                )
             elif opponent_action == Move.STRIKE_3:
-                return situation3 @ np.array([3*ball_control_k2, 2*ball_control_k2, ball_control_k1, 3*ball_control_k2, ball_control_k2, ball_control_k2, 3*ball_control_k2, ball_control_k2])
+                return situation3 @ np.array(
+                    [
+                        3 * ball_control_k2,
+                        2 * ball_control_k2,
+                        ball_control_k1,
+                        3 * ball_control_k2,
+                        ball_control_k2,
+                        ball_control_k2,
+                        3 * ball_control_k2,
+                        ball_control_k2,
+                    ]
+                )
             elif opponent_action == Move.STRIKE_4:
-                return situation3 @ np.array([2*ball_control_k2, 3*ball_control_k2, 3*ball_control_k2, ball_control_k1, ball_control_k2, ball_control_k2, ball_control_k2, 3*ball_control_k2])
+                return situation3 @ np.array(
+                    [
+                        2 * ball_control_k2,
+                        3 * ball_control_k2,
+                        3 * ball_control_k2,
+                        ball_control_k1,
+                        ball_control_k2,
+                        ball_control_k2,
+                        ball_control_k2,
+                        3 * ball_control_k2,
+                    ]
+                )
             elif opponent_action == Move.BALL_5:
-                return situation3 @ np.array([3*ball_control_k2, 2*ball_control_k2, 2*ball_control_k2, 2*ball_control_k2, ball_control_k1, 3*ball_control_k2, 3*ball_control_k2, ball_control_k2])
+                return situation3 @ np.array(
+                    [
+                        3 * ball_control_k2,
+                        2 * ball_control_k2,
+                        2 * ball_control_k2,
+                        2 * ball_control_k2,
+                        ball_control_k1,
+                        3 * ball_control_k2,
+                        3 * ball_control_k2,
+                        ball_control_k2,
+                    ]
+                )
             elif opponent_action == Move.BALL_6:
-                return situation3 @ np.array([2*ball_control_k2, 3*ball_control_k2, 2*ball_control_k2, 2*ball_control_k2, 3*ball_control_k2, ball_control_k1, ball_control_k2, 3*ball_control_k2])
+                return situation3 @ np.array(
+                    [
+                        2 * ball_control_k2,
+                        3 * ball_control_k2,
+                        2 * ball_control_k2,
+                        2 * ball_control_k2,
+                        3 * ball_control_k2,
+                        ball_control_k1,
+                        ball_control_k2,
+                        3 * ball_control_k2,
+                    ]
+                )
             elif opponent_action == Move.BALL_7:
-                return situation3 @ np.array([2*ball_control_k2, 2*ball_control_k2, 3*ball_control_k2, 2*ball_control_k2, 3*ball_control_k2, ball_control_k2, ball_control_k1, 3*ball_control_k2])
+                return situation3 @ np.array(
+                    [
+                        2 * ball_control_k2,
+                        2 * ball_control_k2,
+                        3 * ball_control_k2,
+                        2 * ball_control_k2,
+                        3 * ball_control_k2,
+                        ball_control_k2,
+                        ball_control_k1,
+                        3 * ball_control_k2,
+                    ]
+                )
             elif opponent_action == Move.BALL_8:
-                return situation3 @ np.array([2*ball_control_k2, 2*ball_control_k2, 2*ball_control_k2, 3*ball_control_k2, ball_control_k2, 3*ball_control_k2, 3*ball_control_k2, ball_control_k1])
+                return situation3 @ np.array(
+                    [
+                        2 * ball_control_k2,
+                        2 * ball_control_k2,
+                        2 * ball_control_k2,
+                        3 * ball_control_k2,
+                        ball_control_k2,
+                        3 * ball_control_k2,
+                        3 * ball_control_k2,
+                        ball_control_k1,
+                    ]
+                )
 
-    
         return (0, 0, 0, 0)

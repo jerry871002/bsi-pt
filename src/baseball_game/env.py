@@ -10,6 +10,7 @@ from utils import normalize_distribution
 # State = Tuple[int, int]  # [strike, ball]
 State = List[int]
 
+
 class Move(Enum):
     # the location to which the pitcher decides to throw or the batter decides to hit
     STRIKE_ALL = 0
@@ -22,11 +23,13 @@ class Move(Enum):
     BALL_7 = 7
     BALL_8 = 8
 
+
 class Episode_result(Enum):
     HIT = 0
     OUT = 1
     STRIKE_OUT = 2
     WALK = 3
+
 
 class BaseballGame:
     def __init__(
@@ -39,15 +42,15 @@ class BaseballGame:
         new_phi_opponent=False,
         new_phi_noise_opponent=False,
         p_pattern=0,
-        q=0
+        q=0,
     ):
         # set rewards and punishment
         self.reward_out = reward_out
         self.reward_score = reward_score
-        self.hit_count = 0 # agent swings and hits and scores
-        self.walk_count = 0 # agent gets 4 balls, gets base on balls
-        self.strike_out_count = 0 # agent gets 3 strikes, agent is out
-        self.hit_out_count = 0 # agent swings and hits and out
+        self.hit_count = 0  # agent swings and hits and scores
+        self.walk_count = 0  # agent gets 4 balls, gets base on balls
+        self.strike_out_count = 0  # agent gets 3 strikes, agent is out
+        self.hit_out_count = 0  # agent swings and hits and out
 
         # initialize agent and opponent
         if agent is not None and not isinstance(agent, Agent):
@@ -84,22 +87,23 @@ class BaseballGame:
                             [0.27133333, 0.236      ,0.38866667 ,0.25433333],
                             [0.27533333, 0.267      ,0.25933333 ,0.38166667]]'''
 
-
-        performance_model =[[0.448, 0.254, 0.254, 0.247],
-                            [0.254, 0.448, 0.247, 0.254],
-                            [0.254, 0.247, 0.448, 0.254],
-                            [0.247, 0.254, 0.254, 0.448]]   #0.95,0.85, 0.6   230220
+        performance_model = [
+            [0.448, 0.254, 0.254, 0.247],
+            [0.254, 0.448, 0.247, 0.254],
+            [0.254, 0.247, 0.448, 0.254],
+            [0.247, 0.254, 0.254, 0.448],
+        ]  # 0.95,0.85, 0.6   230220
 
         '''performance_model =[[0.468, 0.223, 0.220, 0.233],
                             [0.259, 0.341, 0.228, 0.227],
                             [0.250, 0.227, 0.345, 0.217],
                             [0.248, 0.223, 0.223, 0.354]]   #0.95,0.85, 0.6   230220'''
-        
+
         '''performance_model =[[0.4641, 0.2314, 0.2378, 0.2311],
                             [0.2456, 0.3793, 0.2364, 0.2366],
                             [0.2419, 0.2335, 0.3876, 0.2292],
                             [0.2429, 0.2312, 0.2337, 0.3788]]'''
-        
+
         return np.array(performance_model)
 
     def reset(self) -> State:
@@ -116,12 +120,12 @@ class BaseballGame:
         if stochastic:
             # see where the ball actually goes base on a probability distribution
             opponent_real_action = self.generate_real_action(opponent_action)
-            #print(f'Agent action a={agent_action.value}')
-            #print(f'env.py 109 op action = {opponent_action}')
-            #print(f'Opponent action o={opponent_action.value}')
-            #print(f'Opponent actual action o\'={opponent_real_action[0].value}')
+            # print(f'Agent action a={agent_action.value}')
+            # print(f'env.py 109 op action = {opponent_action}')
+            # print(f'Opponent action o={opponent_action.value}')
+            # print(f'Opponent actual action o\'={opponent_real_action[0].value}')
             swing_prob, hit_prob, score_prob = self.generate_probs(agent_action, opponent_real_action)
-            #print(f'Agent swing(u1), hit(v1), score(w1) probabilities = {round(swing_prob, 2)}, {round(hit_prob, 2)}, {round(score_prob, 2)}')
+            # print(f'Agent swing(u1), hit(v1), score(w1) probabilities = {round(swing_prob, 2)}, {round(hit_prob, 2)}, {round(score_prob, 2)}')
         else:
             opponent_real_action = opponent_action
             if agent_action == opponent_real_action:
@@ -134,7 +138,9 @@ class BaseballGame:
                 hit_prob = 0
                 score_prob = 0
 
-        done, reward, state_, result = self.generate_result(swing_prob, hit_prob, score_prob, self.state.copy(), opponent_real_action)
+        done, reward, state_, result = self.generate_result(
+            swing_prob, hit_prob, score_prob, self.state.copy(), opponent_real_action
+        )
         actions = (agent_action, opponent_real_action)
         return done, reward, state_, actions, result
 
@@ -142,35 +148,148 @@ class BaseballGame:
         # given the opponent's choice of action, return what the opponent actually does
         # TODO: should match the probability defined in Agent.Intra_belief_model.opponent_model
         ball_control_k1 = 1
-        ball_control_k2 = (1-ball_control_k1)/14
-        options = [Move.STRIKE_1, Move.STRIKE_2, Move.STRIKE_3, Move.STRIKE_4, Move.BALL_5, Move.BALL_6, Move.BALL_7, Move.BALL_8]
+        ball_control_k2 = (1 - ball_control_k1) / 14
+        options = [
+            Move.STRIKE_1,
+            Move.STRIKE_2,
+            Move.STRIKE_3,
+            Move.STRIKE_4,
+            Move.BALL_5,
+            Move.BALL_6,
+            Move.BALL_7,
+            Move.BALL_8,
+        ]
         if action == Move.STRIKE_1:
-            real_action = np.random.choice(options, 1, p=[ball_control_k1, 3*ball_control_k2, 3*ball_control_k2, 2*ball_control_k2, 3*ball_control_k2, ball_control_k2, ball_control_k2, ball_control_k2])
+            real_action = np.random.choice(
+                options,
+                1,
+                p=[
+                    ball_control_k1,
+                    3 * ball_control_k2,
+                    3 * ball_control_k2,
+                    2 * ball_control_k2,
+                    3 * ball_control_k2,
+                    ball_control_k2,
+                    ball_control_k2,
+                    ball_control_k2,
+                ],
+            )
         elif action == Move.STRIKE_2:
-            real_action = np.random.choice(options, 1, p=[3*ball_control_k2, ball_control_k1, 2*ball_control_k2, 3*ball_control_k2, ball_control_k2, 3*ball_control_k2, ball_control_k2, ball_control_k2])
+            real_action = np.random.choice(
+                options,
+                1,
+                p=[
+                    3 * ball_control_k2,
+                    ball_control_k1,
+                    2 * ball_control_k2,
+                    3 * ball_control_k2,
+                    ball_control_k2,
+                    3 * ball_control_k2,
+                    ball_control_k2,
+                    ball_control_k2,
+                ],
+            )
         elif action == Move.STRIKE_3:
-            real_action = np.random.choice(options, 1, p=[3*ball_control_k2, 2*ball_control_k2, ball_control_k1, 3*ball_control_k2, ball_control_k2, ball_control_k2, 3*ball_control_k2, ball_control_k2])
+            real_action = np.random.choice(
+                options,
+                1,
+                p=[
+                    3 * ball_control_k2,
+                    2 * ball_control_k2,
+                    ball_control_k1,
+                    3 * ball_control_k2,
+                    ball_control_k2,
+                    ball_control_k2,
+                    3 * ball_control_k2,
+                    ball_control_k2,
+                ],
+            )
         elif action == Move.STRIKE_4:
-            real_action = np.random.choice(options, 1, p=[2*ball_control_k2, 3*ball_control_k2, 3*ball_control_k2, ball_control_k1, ball_control_k2, ball_control_k2, ball_control_k2, 3*ball_control_k2])
+            real_action = np.random.choice(
+                options,
+                1,
+                p=[
+                    2 * ball_control_k2,
+                    3 * ball_control_k2,
+                    3 * ball_control_k2,
+                    ball_control_k1,
+                    ball_control_k2,
+                    ball_control_k2,
+                    ball_control_k2,
+                    3 * ball_control_k2,
+                ],
+            )
 
-        ball_control_k2 = (1-ball_control_k1)/16
-        
+        ball_control_k2 = (1 - ball_control_k1) / 16
+
         if action == Move.BALL_5:
-            real_action = np.random.choice(options, 1, p=[3*ball_control_k2, 2*ball_control_k2, 2*ball_control_k2, 2*ball_control_k2, ball_control_k1, 3*ball_control_k2, 3*ball_control_k2, ball_control_k2])
+            real_action = np.random.choice(
+                options,
+                1,
+                p=[
+                    3 * ball_control_k2,
+                    2 * ball_control_k2,
+                    2 * ball_control_k2,
+                    2 * ball_control_k2,
+                    ball_control_k1,
+                    3 * ball_control_k2,
+                    3 * ball_control_k2,
+                    ball_control_k2,
+                ],
+            )
         elif action == Move.BALL_6:
-            real_action = np.random.choice(options, 1, p=[2*ball_control_k2, 3*ball_control_k2, 2*ball_control_k2, 2*ball_control_k2, 3*ball_control_k2, ball_control_k1, ball_control_k2, 3*ball_control_k2])
+            real_action = np.random.choice(
+                options,
+                1,
+                p=[
+                    2 * ball_control_k2,
+                    3 * ball_control_k2,
+                    2 * ball_control_k2,
+                    2 * ball_control_k2,
+                    3 * ball_control_k2,
+                    ball_control_k1,
+                    ball_control_k2,
+                    3 * ball_control_k2,
+                ],
+            )
         elif action == Move.BALL_7:
-            real_action = np.random.choice(options, 1, p=[2*ball_control_k2, 2*ball_control_k2, 3*ball_control_k2, 2*ball_control_k2, 3*ball_control_k2, ball_control_k2, ball_control_k1, 3*ball_control_k2])
+            real_action = np.random.choice(
+                options,
+                1,
+                p=[
+                    2 * ball_control_k2,
+                    2 * ball_control_k2,
+                    3 * ball_control_k2,
+                    2 * ball_control_k2,
+                    3 * ball_control_k2,
+                    ball_control_k2,
+                    ball_control_k1,
+                    3 * ball_control_k2,
+                ],
+            )
         elif action == Move.BALL_8:
-            real_action = np.random.choice(options, 1, p=[2*ball_control_k2, 2*ball_control_k2, 2*ball_control_k2, 3*ball_control_k2, ball_control_k2, 3*ball_control_k2, 3*ball_control_k2, ball_control_k1])
+            real_action = np.random.choice(
+                options,
+                1,
+                p=[
+                    2 * ball_control_k2,
+                    2 * ball_control_k2,
+                    2 * ball_control_k2,
+                    3 * ball_control_k2,
+                    ball_control_k2,
+                    3 * ball_control_k2,
+                    3 * ball_control_k2,
+                    ball_control_k1,
+                ],
+            )
 
         return real_action
 
     def generate_probs(self, agent_action, op_action) -> Tuple[float, float, float]:
-        match_probs = (0.95, 0.85, 0.6)   #0.95,0.85, 0.6   230220   
-        mismatch_probs = tuple(0.1+(ele-0.5)/5 for ele in match_probs)
+        match_probs = (0.95, 0.85, 0.6)  # 0.95,0.85, 0.6   230220
+        mismatch_probs = tuple(0.1 + (ele - 0.5) / 5 for ele in match_probs)
         # mismatch_probs = ()
-        general_probs = (0.9, 0.7, 0.3) # when agent action = 0 (strike all)
+        general_probs = (0.9, 0.7, 0.3)  # when agent action = 0 (strike all)
         if agent_action == Move.STRIKE_ALL:
             if op_action in [Move.STRIKE_1, Move.STRIKE_2, Move.STRIKE_3, Move.STRIKE_4]:
                 return general_probs
@@ -178,9 +297,9 @@ class BaseballGame:
                 return (0.3, 0.5, 0.2)
         elif agent_action == Move.STRIKE_1:
             if op_action == Move.STRIKE_1:
-                return (0.95, 0.85, 0.6) # this agent is specifically good at doing action 1 (hit location 1)
+                return (0.95, 0.85, 0.6)  # this agent is specifically good at doing action 1 (hit location 1)
             elif op_action in [Move.STRIKE_2, Move.STRIKE_3]:
-                return (2*ele for ele in mismatch_probs)
+                return (2 * ele for ele in mismatch_probs)
             elif op_action in [Move.STRIKE_4, Move.BALL_5]:
                 return mismatch_probs
             else:
@@ -189,7 +308,7 @@ class BaseballGame:
             if op_action == Move.STRIKE_2:
                 return match_probs
             elif op_action in [Move.STRIKE_1, Move.STRIKE_4]:
-                return (2*ele for ele in mismatch_probs)
+                return (2 * ele for ele in mismatch_probs)
             elif op_action in [Move.STRIKE_3, Move.BALL_6]:
                 return mismatch_probs
             else:
@@ -198,7 +317,7 @@ class BaseballGame:
             if op_action == Move.STRIKE_3:
                 return match_probs
             elif op_action in [Move.STRIKE_1, Move.STRIKE_4]:
-                return (2*ele for ele in mismatch_probs)
+                return (2 * ele for ele in mismatch_probs)
             elif op_action in [Move.STRIKE_2, Move.BALL_7]:
                 return mismatch_probs
             else:
@@ -207,51 +326,51 @@ class BaseballGame:
             if op_action == Move.STRIKE_4:
                 return match_probs
             elif op_action in [Move.STRIKE_2, Move.STRIKE_3]:
-                return (2*ele for ele in mismatch_probs)
+                return (2 * ele for ele in mismatch_probs)
             elif op_action in [Move.STRIKE_1, Move.BALL_8]:
                 return mismatch_probs
             else:
                 return (0.1, 0.1, 0.1)
-        
-        raise ValueError(
-            f'The agent shouldn\'t be doing {agent_action} or the op shouldn\'t be doing {op_action}'
-        )
 
-    def generate_result(self, swing_prob, hit_prob, score_prob, state_, op_action) -> Tuple[bool, int, List[int], Episode_result]:
+        raise ValueError(f'The agent shouldn\'t be doing {agent_action} or the op shouldn\'t be doing {op_action}')
+
+    def generate_result(
+        self, swing_prob, hit_prob, score_prob, state_, op_action
+    ) -> Tuple[bool, int, List[int], Episode_result]:
         # given the u1, v1, w1 probabilities and the state, op_action
         # return the result of this state (hit, out swing&miss stand)
         swing, hit, score, reward, result = False, False, False, 0, None
-        swing = np.random.choice([True, False], 1, p=[swing_prob, 1-swing_prob])
+        swing = np.random.choice([True, False], 1, p=[swing_prob, 1 - swing_prob])
         if swing:
-            #print("Agent swings the bat")
-            hit = np.random.choice([True, False], 1, p=[hit_prob, 1-hit_prob])
+            # print("Agent swings the bat")
+            hit = np.random.choice([True, False], 1, p=[hit_prob, 1 - hit_prob])
             if hit:
-                #print("Agent hits the ball")
-                score = np.random.choice([True, False], 1, p=[score_prob, 1-score_prob])
+                # print("Agent hits the ball")
+                score = np.random.choice([True, False], 1, p=[score_prob, 1 - score_prob])
                 if score:
-                    #print("Agent scores")
+                    # print("Agent scores")
                     self.hit_count += 1
                     result = Episode_result.HIT
                     # episode ends, agent scores
                     done = True
                     reward = self.reward_score
                 else:
-                    #print("Agent is out")
+                    # print("Agent is out")
                     self.hit_out_count += 1
                     result = Episode_result.OUT
                     # episode ends, agent out
                     done = True
                     reward = self.reward_out
             else:
-                #print("Agent swings and misses")
+                # print("Agent swings and misses")
                 # swing & miss, strike + 1
                 done = False
                 reward = 0
                 state_[0] += 1
         else:
-            #print("Agent stands and does nothing")
+            # print("Agent stands and does nothing")
             # stand, should further determine whether it is a strike or ball
-            done = False 
+            done = False
             if op_action in [Move.STRIKE_1, Move.STRIKE_2, Move.STRIKE_3, Move.STRIKE_4]:
                 # it's a strike
                 state_[0] += 1
@@ -278,25 +397,37 @@ class BaseballGame:
         agent = 'A'
         opponent = 'O'
 
-        if actions[0] == Move.STRIKE_1: agent_position=(1, 1)
-        elif actions[0] == Move.STRIKE_2: agent_position=(2, 1)
-        elif actions[0] == Move.STRIKE_3: agent_position=(1, 2)
-        elif actions[0] == Move.STRIKE_4: agent_position=(2, 2)
-        elif actions[0] == Move.STRIKE_ALL: 
-            agent_position=(-1, -1)
-        if actions[1] == Move.STRIKE_1: op_position=(1, 1)
-        elif actions[1] == Move.STRIKE_2: op_position=(2, 1)
-        elif actions[1] == Move.STRIKE_3: op_position=(1, 2)
-        elif actions[1] == Move.STRIKE_4: op_position=(2, 2)
-        elif actions[1] == Move.BALL_5: op_position=(0, 0)
-        elif actions[1] == Move.BALL_6: op_position=(3, 0)
-        elif actions[1] == Move.BALL_7: op_position=(0, 3)
-        elif actions[1] == Move.BALL_8: op_position=(3, 3)
+        if actions[0] == Move.STRIKE_1:
+            agent_position = (1, 1)
+        elif actions[0] == Move.STRIKE_2:
+            agent_position = (2, 1)
+        elif actions[0] == Move.STRIKE_3:
+            agent_position = (1, 2)
+        elif actions[0] == Move.STRIKE_4:
+            agent_position = (2, 2)
+        elif actions[0] == Move.STRIKE_ALL:
+            agent_position = (-1, -1)
+        if actions[1] == Move.STRIKE_1:
+            op_position = (1, 1)
+        elif actions[1] == Move.STRIKE_2:
+            op_position = (2, 1)
+        elif actions[1] == Move.STRIKE_3:
+            op_position = (1, 2)
+        elif actions[1] == Move.STRIKE_4:
+            op_position = (2, 2)
+        elif actions[1] == Move.BALL_5:
+            op_position = (0, 0)
+        elif actions[1] == Move.BALL_6:
+            op_position = (3, 0)
+        elif actions[1] == Move.BALL_7:
+            op_position = (0, 3)
+        elif actions[1] == Move.BALL_8:
+            op_position = (3, 3)
 
-        if op_position==agent_position:
-            hit_position=(agent_position)
+        if op_position == agent_position:
+            hit_position = agent_position
         else:
-            hit_position=(-1, -1)
+            hit_position = (-1, -1)
 
         for y in range(4):
             for x in range(4):
@@ -312,9 +443,11 @@ class BaseballGame:
                     print('.', end='')
             print()
 
+
 class Agent:
     def __init__(self, x=None, y=None):
         pass
+
 
 class Opponent(Agent):
     class Policy(Enum):
@@ -423,46 +556,87 @@ class Opponent(Agent):
                 return self.generate_action_from_tau(tau=4, situation=2)
             else:
                 return self.generate_action_from_tau(tau=4, situation=3)
-        raise ValueError(
-            f'Opponent with policy {self.policy}'
-        )
+        raise ValueError(f'Opponent with policy {self.policy}')
 
-    def generate_action_from_tau(self, tau: int, situation: int) -> Move: # tau=1~4, situation=1~3: states are catogorized into 3 situations
-        action_control_constant_mu1 = 0.6 # mu1: probability of the action that is most likely to happen
-        mu2 = (1 - action_control_constant_mu1) / 16 # define the probability of other less likely actions
-        options = [Move.STRIKE_1, Move.STRIKE_2, Move.STRIKE_3, Move.STRIKE_4, Move.BALL_5, Move.BALL_6, Move.BALL_7, Move.BALL_8]
+    def generate_action_from_tau(
+        self, tau: int, situation: int
+    ) -> Move:  # tau=1~4, situation=1~3: states are catogorized into 3 situations
+        action_control_constant_mu1 = 0.6  # mu1: probability of the action that is most likely to happen
+        mu2 = (1 - action_control_constant_mu1) / 16  # define the probability of other less likely actions
+        options = [
+            Move.STRIKE_1,
+            Move.STRIKE_2,
+            Move.STRIKE_3,
+            Move.STRIKE_4,
+            Move.BALL_5,
+            Move.BALL_6,
+            Move.BALL_7,
+            Move.BALL_8,
+        ]
 
         # [0, 0], [0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 2], [2, 3]
         if situation == 1:
             if tau == 1:
-                action = np.random.choice(options, 1, p=[action_control_constant_mu1, 4*mu2, 4*mu2, 4*mu2, mu2, mu2, mu2, mu2])
+                action = np.random.choice(
+                    options, 1, p=[action_control_constant_mu1, 4 * mu2, 4 * mu2, 4 * mu2, mu2, mu2, mu2, mu2]
+                )
             elif tau == 2:
-                action = np.random.choice(options, 1, p=[4*mu2, action_control_constant_mu1, 4*mu2, 4*mu2, mu2, mu2, mu2, mu2])
+                action = np.random.choice(
+                    options, 1, p=[4 * mu2, action_control_constant_mu1, 4 * mu2, 4 * mu2, mu2, mu2, mu2, mu2]
+                )
             elif tau == 3:
-                action = np.random.choice(options, 1, p=[4*mu2, 4*mu2, action_control_constant_mu1, 4*mu2, mu2, mu2, mu2, mu2])
+                action = np.random.choice(
+                    options, 1, p=[4 * mu2, 4 * mu2, action_control_constant_mu1, 4 * mu2, mu2, mu2, mu2, mu2]
+                )
             elif tau == 4:
-                action = np.random.choice(options, 1, p=[4*mu2, 4*mu2, 4*mu2, action_control_constant_mu1, mu2, mu2, mu2, mu2])
+                action = np.random.choice(
+                    options, 1, p=[4 * mu2, 4 * mu2, 4 * mu2, action_control_constant_mu1, mu2, mu2, mu2, mu2]
+                )
         # [1, 0], [1, 1]
         elif situation == 2:
             if tau == 1:
-                action = np.random.choice(options, 1, p=[4*mu2, 1*mu2, 1*mu2, 1*mu2, action_control_constant_mu1, 4*mu2, 4*mu2, 1*mu2])
+                action = np.random.choice(
+                    options,
+                    1,
+                    p=[4 * mu2, 1 * mu2, 1 * mu2, 1 * mu2, action_control_constant_mu1, 4 * mu2, 4 * mu2, 1 * mu2],
+                )
             elif tau == 2:
-                action = np.random.choice(options, 1, p=[1*mu2, 4*mu2, 1*mu2, 1*mu2, 4*mu2, action_control_constant_mu1, 1*mu2, 4*mu2])
+                action = np.random.choice(
+                    options,
+                    1,
+                    p=[1 * mu2, 4 * mu2, 1 * mu2, 1 * mu2, 4 * mu2, action_control_constant_mu1, 1 * mu2, 4 * mu2],
+                )
             elif tau == 3:
-                action = np.random.choice(options, 1, p=[1*mu2, 1*mu2, 4*mu2, 1*mu2, 4*mu2, 1*mu2, action_control_constant_mu1, 4*mu2])
+                action = np.random.choice(
+                    options,
+                    1,
+                    p=[1 * mu2, 1 * mu2, 4 * mu2, 1 * mu2, 4 * mu2, 1 * mu2, action_control_constant_mu1, 4 * mu2],
+                )
             elif tau == 4:
-                action = np.random.choice(options, 1, p=[1*mu2, 1*mu2, 1*mu2, 4*mu2, 1*mu2, 4*mu2, 4*mu2, action_control_constant_mu1])
+                action = np.random.choice(
+                    options,
+                    1,
+                    p=[1 * mu2, 1 * mu2, 1 * mu2, 4 * mu2, 1 * mu2, 4 * mu2, 4 * mu2, action_control_constant_mu1],
+                )
         # [2, 0], [2, 1]
         elif situation == 3:
             if tau == 1:
-                action = np.random.choice(options, 1, p=[mu2, mu2, mu2, mu2, action_control_constant_mu1, 4*mu2, 4*mu2, 4*mu2])
+                action = np.random.choice(
+                    options, 1, p=[mu2, mu2, mu2, mu2, action_control_constant_mu1, 4 * mu2, 4 * mu2, 4 * mu2]
+                )
             elif tau == 2:
-                action = np.random.choice(options, 1, p=[mu2, mu2, mu2, mu2, 4*mu2, action_control_constant_mu1, 4*mu2, 4*mu2])
+                action = np.random.choice(
+                    options, 1, p=[mu2, mu2, mu2, mu2, 4 * mu2, action_control_constant_mu1, 4 * mu2, 4 * mu2]
+                )
             elif tau == 3:
-                action = np.random.choice(options, 1, p=[mu2, mu2, mu2, mu2, 4*mu2, 4*mu2, action_control_constant_mu1, 4*mu2])
+                action = np.random.choice(
+                    options, 1, p=[mu2, mu2, mu2, mu2, 4 * mu2, 4 * mu2, action_control_constant_mu1, 4 * mu2]
+                )
             elif tau == 4:
-                action = np.random.choice(options, 1, p=[mu2, mu2, mu2, mu2, 4*mu2, 4*mu2, 4*mu2, action_control_constant_mu1])
-        
+                action = np.random.choice(
+                    options, 1, p=[mu2, mu2, mu2, mu2, 4 * mu2, 4 * mu2, 4 * mu2, action_control_constant_mu1]
+                )
+
         return action[0]
 
 
@@ -485,14 +659,14 @@ class BprOpponent(Opponent):
 
     def update_belief(self, utility: int) -> None:
         """
-        Update the belief according to the utility the agent gets. 
+        Update the belief according to the utility the agent gets.
         Notice that the utility is from the agent's perspective.
 
         Args:
             utility (int): The reward the agent gets in a episode.
         """
         # find the currently observed utility in the performance model
-        likelihood = (self.PERFORMANCE_MODEL[self.policy.value-1] == utility).astype(float)
+        likelihood = (self.PERFORMANCE_MODEL[self.policy.value - 1] == utility).astype(float)
         # posterior (belief) = prior * likelihood (performance model)
         new_belief_unnormalized = self.belief * likelihood / (np.sum(likelihood * self.belief) + 1e-6)
         self.belief = normalize_distribution(new_belief_unnormalized, 0.01)
@@ -530,7 +704,9 @@ class PhiOpponent(Opponent):
     @phi.setter
     def phi(self, new_phi):
         if not isinstance(new_phi, self.Phi):
-            raise ValueError(f'Phi should be represented by `PhiOpponent.Phi` class, invalid value: {new_phi} ({type(new_phi)})')
+            raise ValueError(
+                f'Phi should be represented by `PhiOpponent.Phi` class, invalid value: {new_phi} ({type(new_phi)})'
+            )
         self._phi = new_phi
 
     def update_policy(self, final_action, final_result) -> None:
@@ -558,70 +734,107 @@ class PhiOpponent(Opponent):
         # phi 6
         elif self.phi is self.Phi.SIX:
             # if (3478 hit/walk) or (1256 out/strike_out) or (78 walk)
-            if (final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [Episode_result.HIT, Episode_result.WALK]) \
-            or (final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [Episode_result.OUT, Episode_result.STRIKE_OUT])\
-            or (final_action in [Move.BALL_7, Move.BALL_8] and final_result is Episode_result.WALK):
+            if (
+                (
+                    final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8]
+                    and final_result in [Episode_result.HIT, Episode_result.WALK]
+                )
+                or (
+                    final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6]
+                    and final_result in [Episode_result.OUT, Episode_result.STRIKE_OUT]
+                )
+                or (final_action in [Move.BALL_7, Move.BALL_8] and final_result is Episode_result.WALK)
+            ):
                 self.policy = self.Policy.ONE
             else:
                 self.policy = self.Policy.THREE
         # phi 7
         elif self.phi is self.Phi.SEVEN:
             # if (3478 hit/walk) or (1256 out/strike_out) or (78 walk)
-            if (final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [Episode_result.HIT, Episode_result.WALK]) \
-            or (final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [Episode_result.OUT, Episode_result.STRIKE_OUT])\
-            or (final_action in [Move.BALL_7, Move.BALL_8] and final_result is Episode_result.WALK):
+            if (
+                (
+                    final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8]
+                    and final_result in [Episode_result.HIT, Episode_result.WALK]
+                )
+                or (
+                    final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6]
+                    and final_result in [Episode_result.OUT, Episode_result.STRIKE_OUT]
+                )
+                or (final_action in [Move.BALL_7, Move.BALL_8] and final_result is Episode_result.WALK)
+            ):
                 self.policy = self.Policy.FOUR
             else:
                 self.policy = self.Policy.TWO
         # phi 8
         elif self.phi is self.Phi.EIGHT:
             # if (1256 hit) or (1256 stirke out)
-            if (final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result is Episode_result.HIT)\
-            or (final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result is Episode_result.OUT):
+            if (
+                final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6]
+                and final_result is Episode_result.HIT
+            ) or (
+                final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8]
+                and final_result is Episode_result.OUT
+            ):
                 self.policy = self.Policy.ONE
             else:
                 self.policy = self.Policy.THREE
         # phi 9
         elif self.phi is self.Phi.NINE:
             # if hit/walk
-            if (final_result in [Episode_result.HIT, Episode_result.WALK]):
+            if final_result in [Episode_result.HIT, Episode_result.WALK]:
                 self.policy = self.Policy.FOUR
             else:
                 self.policy = self.Policy.THREE
         # phi 10 resembles phi6
         elif self.phi is self.Phi.TEN:
 
-            if (final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [Episode_result.HIT]):
-                self.policy = self.Policy.THREE 
-            elif (final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [Episode_result.HIT]):
-                self.policy = self.Policy.ONE 
-            elif (final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [Episode_result.OUT]):
-                self.policy = self.Policy.FOUR
-            elif (final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [Episode_result.OUT]):
+            if final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [
+                Episode_result.HIT
+            ]:
                 self.policy = self.Policy.THREE
-            elif (final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [Episode_result.STRIKE_OUT]):
-                self.policy = self.Policy.ONE  
-            elif (final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [Episode_result.STRIKE_OUT]):
-                self.policy = self.Policy.THREE                 
-            elif (final_action in [Move.BALL_5, Move.BALL_6] and final_result in [Episode_result.WALK]):
+            elif final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [
+                Episode_result.HIT
+            ]:
+                self.policy = self.Policy.ONE
+            elif final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [
+                Episode_result.OUT
+            ]:
                 self.policy = self.Policy.FOUR
-            elif (final_action in [Move.BALL_7, Move.BALL_8] and final_result in [Episode_result.WALK]):
+            elif final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [
+                Episode_result.OUT
+            ]:
+                self.policy = self.Policy.THREE
+            elif final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [
+                Episode_result.STRIKE_OUT
+            ]:
+                self.policy = self.Policy.ONE
+            elif final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [
+                Episode_result.STRIKE_OUT
+            ]:
+                self.policy = self.Policy.THREE
+            elif final_action in [Move.BALL_5, Move.BALL_6] and final_result in [Episode_result.WALK]:
+                self.policy = self.Policy.FOUR
+            elif final_action in [Move.BALL_7, Move.BALL_8] and final_result in [Episode_result.WALK]:
                 self.policy = self.Policy.ONE
 
         # phi 11 resembles phi5
         elif self.phi is self.Phi.ELEVEN:
-            if (final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [Episode_result.HIT]):
+            if final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [
+                Episode_result.HIT
+            ]:
                 self.policy = self.Policy.THREE
-            elif (final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [Episode_result.HIT]):
-                self.policy = self.Policy.ONE               
-            elif (final_action in [Move.BALL_5, Move.BALL_6] and final_result in [Episode_result.WALK]):
-                self.policy = self.Policy.FOUR    
-            elif (final_action in [Move.BALL_7, Move.BALL_8] and final_result in [Episode_result.WALK]):
-                self.policy = self.Policy.TWO                   
+            elif final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [
+                Episode_result.HIT
+            ]:
+                self.policy = self.Policy.ONE
+            elif final_action in [Move.BALL_5, Move.BALL_6] and final_result in [Episode_result.WALK]:
+                self.policy = self.Policy.FOUR
+            elif final_action in [Move.BALL_7, Move.BALL_8] and final_result in [Episode_result.WALK]:
+                self.policy = self.Policy.TWO
             else:
                 self.policy = random.choice(list(self.Policy))
-                
-        # phi 11 
+
+        # phi 11
         '''elif self.phi is self.Phi.ELEVEN:
             if (final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [Episode_result.HIT]):
                 self.policy = self.Policy.FOUR 
@@ -639,10 +852,6 @@ class PhiOpponent(Opponent):
                 self.policy = self.Policy.FOUR
             elif (final_action in [Move.BALL_7, Move.BALL_8] and final_result in [Episode_result.WALK]):
                 self.policy = self.Policy.TWO'''
-                
-
-
-
 
 
 class NewPhiNoiseOpponent(Opponent):
@@ -650,7 +859,7 @@ class NewPhiNoiseOpponent(Opponent):
         super().__init__(x, y)
         self.p_pattern = p_pattern
         self._phi = random.choice(list(PhiOpponent.Phi)[5:9])
-        #print(f'opponent phi is now {self.phi}')
+        # print(f'opponent phi is now {self.phi}')
 
     @property
     def phi(self):
@@ -659,7 +868,9 @@ class NewPhiNoiseOpponent(Opponent):
     @phi.setter
     def phi(self, new_phi):
         if not isinstance(new_phi, self.Phi):
-            raise ValueError(f'Phi should be represented by `PhiOpponent.Phi` class, invalid value: {new_phi} ({type(new_phi)})')
+            raise ValueError(
+                f'Phi should be represented by `PhiOpponent.Phi` class, invalid value: {new_phi} ({type(new_phi)})'
+            )
         self._phi = new_phi
 
     def update_policy(self, final_action, final_result) -> None:
@@ -672,7 +883,7 @@ class NewPhiNoiseOpponent(Opponent):
         if not self.phi:
             raise RuntimeError('Phi is not specified.')
 
-        stochasticOp = (random.random() < self.p_pattern)
+        stochasticOp = random.random() < self.p_pattern
         if stochasticOp:
             self.policy = random.choice(list(self.Policy))
         else:
@@ -691,67 +902,104 @@ class NewPhiNoiseOpponent(Opponent):
             # phi 6
             elif self.phi is PhiOpponent.Phi.SIX:
                 # if (3478 hit/walk) or (1256 out/strike_out) or (78 walk)
-                if (final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [Episode_result.HIT, Episode_result.WALK]) \
-                or (final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [Episode_result.OUT, Episode_result.STRIKE_OUT])\
-                or (final_action in [Move.BALL_7, Move.BALL_8] and final_result is Episode_result.WALK):
+                if (
+                    (
+                        final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8]
+                        and final_result in [Episode_result.HIT, Episode_result.WALK]
+                    )
+                    or (
+                        final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6]
+                        and final_result in [Episode_result.OUT, Episode_result.STRIKE_OUT]
+                    )
+                    or (final_action in [Move.BALL_7, Move.BALL_8] and final_result is Episode_result.WALK)
+                ):
                     self.policy = self.Policy.ONE
                 else:
                     self.policy = self.Policy.THREE
             # phi 7
             elif self.phi is PhiOpponent.Phi.SEVEN:
                 # if (3478 hit/walk) or (1256 out/strike_out) or (78 walk)
-                if (final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [Episode_result.HIT, Episode_result.WALK]) \
-                or (final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [Episode_result.OUT, Episode_result.STRIKE_OUT])\
-                or (final_action in [Move.BALL_7, Move.BALL_8] and final_result is Episode_result.WALK):
+                if (
+                    (
+                        final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8]
+                        and final_result in [Episode_result.HIT, Episode_result.WALK]
+                    )
+                    or (
+                        final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6]
+                        and final_result in [Episode_result.OUT, Episode_result.STRIKE_OUT]
+                    )
+                    or (final_action in [Move.BALL_7, Move.BALL_8] and final_result is Episode_result.WALK)
+                ):
                     self.policy = self.Policy.FOUR
                 else:
                     self.policy = self.Policy.TWO
             # phi 8
             elif self.phi is PhiOpponent.Phi.EIGHT:
                 # if (3478 hit) or (1256 stirke out)
-                if (final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result is Episode_result.HIT)\
-                or (final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result is Episode_result.OUT):
+                if (
+                    final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6]
+                    and final_result is Episode_result.HIT
+                ) or (
+                    final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8]
+                    and final_result is Episode_result.OUT
+                ):
                     self.policy = self.Policy.ONE
                 else:
                     self.policy = self.Policy.THREE
             # phi 9
             elif self.phi is PhiOpponent.Phi.NINE:
                 # if hit/walk
-                if (final_result in [Episode_result.HIT, Episode_result.WALK]):
+                if final_result in [Episode_result.HIT, Episode_result.WALK]:
                     self.policy = self.Policy.FOUR
                 else:
                     self.policy = self.Policy.THREE
             # phi 10 resembles phi6
             elif self.phi is PhiOpponent.Phi.TEN:
                 # if (12 hit) or (56 hit/walk)
-                if (final_action in [Move.STRIKE_1, Move.STRIKE_2] and final_result is Episode_result.HIT) \
-                or (final_action in [Move.BALL_5, Move.BALL_6] and final_result in [Episode_result.HIT, Episode_result.WALK]):
+                if (final_action in [Move.STRIKE_1, Move.STRIKE_2] and final_result is Episode_result.HIT) or (
+                    final_action in [Move.BALL_5, Move.BALL_6]
+                    and final_result in [Episode_result.HIT, Episode_result.WALK]
+                ):
                     self.policy = self.Policy.FOUR
                 # if (3478 out/strike out)
-                elif (final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [Episode_result.OUT, Episode_result.STRIKE_OUT]):
+                elif final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [
+                    Episode_result.OUT,
+                    Episode_result.STRIKE_OUT,
+                ]:
                     self.policy = self.Policy.THREE
                 else:
                     self.policy = self.Policy.ONE
             # phi 11 resembles phi7
             elif self.phi is PhiOpponent.Phi.ELEVEN:
                 # if (12 hit) or (56 hit/walk)
-                if (final_action in [Move.STRIKE_1, Move.STRIKE_2] and final_result is Episode_result.HIT) \
-                or (final_action in [Move.BALL_5, Move.BALL_6] and final_result in [Episode_result.HIT, Episode_result.WALK]):
+                if (final_action in [Move.STRIKE_1, Move.STRIKE_2] and final_result is Episode_result.HIT) or (
+                    final_action in [Move.BALL_5, Move.BALL_6]
+                    and final_result in [Episode_result.HIT, Episode_result.WALK]
+                ):
                     self.policy = self.Policy.ONE
                 # if (3478 out/strike out)
-                elif (final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [Episode_result.OUT, Episode_result.STRIKE_OUT]):
+                elif final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [
+                    Episode_result.OUT,
+                    Episode_result.STRIKE_OUT,
+                ]:
                     self.policy = self.Policy.TWO
                 else:
                     self.policy = self.Policy.FOUR
             # phi 12 resembles phi5
             elif self.phi is PhiOpponent.Phi.TWELVE:
-                if (final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [Episode_result.HIT, Episode_result.WALK]):
+                if final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [
+                    Episode_result.HIT,
+                    Episode_result.WALK,
+                ]:
                     self.policy = self.Policy.THREE
-                elif (final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [Episode_result.HIT, Episode_result.WALK]):
-                    self.policy = self.Policy.ONE                 
+                elif final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [
+                    Episode_result.HIT,
+                    Episode_result.WALK,
+                ]:
+                    self.policy = self.Policy.ONE
                 else:
                     self.policy = random.choice(list(self.Policy))
-            
+
 
 class OutOfLibraryPhiOpponent(Opponent):
     class Phi(Enum):
@@ -780,7 +1028,9 @@ class OutOfLibraryPhiOpponent(Opponent):
     @phi.setter
     def phi(self, new_phi):
         if not isinstance(new_phi, self.Phi):
-            raise ValueError(f'Phi should be represented by `PhiOpponent.Phi` class, invalid value: {new_phi} ({type(new_phi)})')
+            raise ValueError(
+                f'Phi should be represented by `PhiOpponent.Phi` class, invalid value: {new_phi} ({type(new_phi)})'
+            )
         self._phi = new_phi
 
     def update_policy(self, final_action, final_result, N) -> None:
@@ -795,49 +1045,132 @@ class OutOfLibraryPhiOpponent(Opponent):
 
         policy_list = []
         if self.phi is self.Phi.ONE:
-            policy_list = [self.Policy.ONE, self.Policy.ONE, self.Policy.ONE, self.Policy.ONE, self.Policy.ONE, self.Policy.ONE, self.Policy.ONE, self.Policy.ONE]
+            policy_list = [
+                self.Policy.ONE,
+                self.Policy.ONE,
+                self.Policy.ONE,
+                self.Policy.ONE,
+                self.Policy.ONE,
+                self.Policy.ONE,
+                self.Policy.ONE,
+                self.Policy.ONE,
+            ]
         elif self.phi is self.Phi.TWO:
-            policy_list = [self.Policy.TWO, self.Policy.TWO, self.Policy.TWO, self.Policy.TWO, self.Policy.TWO, self.Policy.TWO, self.Policy.TWO, self.Policy.TWO]
+            policy_list = [
+                self.Policy.TWO,
+                self.Policy.TWO,
+                self.Policy.TWO,
+                self.Policy.TWO,
+                self.Policy.TWO,
+                self.Policy.TWO,
+                self.Policy.TWO,
+                self.Policy.TWO,
+            ]
         elif self.phi is self.Phi.THREE:
-            policy_list = [self.Policy.THREE, self.Policy.THREE, self.Policy.THREE, self.Policy.THREE, self.Policy.THREE, self.Policy.THREE, self.Policy.THREE, self.Policy.THREE]
+            policy_list = [
+                self.Policy.THREE,
+                self.Policy.THREE,
+                self.Policy.THREE,
+                self.Policy.THREE,
+                self.Policy.THREE,
+                self.Policy.THREE,
+                self.Policy.THREE,
+                self.Policy.THREE,
+            ]
         elif self.phi is self.Phi.FOUR:
-            policy_list = [self.Policy.FOUR, self.Policy.FOUR, self.Policy.FOUR, self.Policy.FOUR, self.Policy.FOUR, self.Policy.FOUR, self.Policy.FOUR, self.Policy.FOUR]
+            policy_list = [
+                self.Policy.FOUR,
+                self.Policy.FOUR,
+                self.Policy.FOUR,
+                self.Policy.FOUR,
+                self.Policy.FOUR,
+                self.Policy.FOUR,
+                self.Policy.FOUR,
+                self.Policy.FOUR,
+            ]
         elif self.phi is self.Phi.FIVE:
             for i in range(8):
                 policy_list[i] = random.choice(list(self.Policy))
         elif self.phi is self.Phi.SIX:
-            policy_list = [self.Policy.THREE, self.Policy.ONE, self.Policy.ONE, self.Policy.THREE, self.Policy.ONE, self.Policy.THREE, self.Policy.THREE, self.Policy.ONE]
+            policy_list = [
+                self.Policy.THREE,
+                self.Policy.ONE,
+                self.Policy.ONE,
+                self.Policy.THREE,
+                self.Policy.ONE,
+                self.Policy.THREE,
+                self.Policy.THREE,
+                self.Policy.ONE,
+            ]
         elif self.phi is self.Phi.SEVEN:
-            policy_list = [self.Policy.TWO, self.Policy.FOUR, self.Policy.FOUR, self.Policy.TWO, self.Policy.FOUR, self.Policy.TWO, self.Policy.TWO, self.Policy.FOUR]
+            policy_list = [
+                self.Policy.TWO,
+                self.Policy.FOUR,
+                self.Policy.FOUR,
+                self.Policy.TWO,
+                self.Policy.FOUR,
+                self.Policy.TWO,
+                self.Policy.TWO,
+                self.Policy.FOUR,
+            ]
         elif self.phi is self.Phi.EIGHT:
-            policy_list = [self.Policy.THREE, self.Policy.ONE, self.Policy.THREE, self.Policy.THREE, self.Policy.ONE, self.Policy.THREE, self.Policy.THREE, self.Policy.THREE]
+            policy_list = [
+                self.Policy.THREE,
+                self.Policy.ONE,
+                self.Policy.THREE,
+                self.Policy.THREE,
+                self.Policy.ONE,
+                self.Policy.THREE,
+                self.Policy.THREE,
+                self.Policy.THREE,
+            ]
         elif self.phi is self.Phi.NINE:
-            policy_list = [self.Policy.FOUR, self.Policy.FOUR, self.Policy.THREE, self.Policy.THREE, self.Policy.THREE, self.Policy.THREE, self.Policy.FOUR, self.Policy.FOUR]
-        
+            policy_list = [
+                self.Policy.FOUR,
+                self.Policy.FOUR,
+                self.Policy.THREE,
+                self.Policy.THREE,
+                self.Policy.THREE,
+                self.Policy.THREE,
+                self.Policy.FOUR,
+                self.Policy.FOUR,
+            ]
+
         # TODO: random replace elements in policy_list according to N
         index_to_replace = random.sample(range(8), N)
         for i in range(N):
             policy_list[index_to_replace[i]] = random.choice(list(self.Policy))
         # TODO: check the new policy_list is has at least N different elements from policy_lists of all other phi opponent
 
-
         # 1256 hit
-        if final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [Episode_result.HIT]:
+        if final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [
+            Episode_result.HIT
+        ]:
             self.policy = policy_list[0]
         # 3478 hit
-        elif final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [Episode_result.HIT]:
+        elif final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [
+            Episode_result.HIT
+        ]:
             self.policy = policy_list[1]
         # 1256 out
-        elif final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [Episode_result.OUT]:
+        elif final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [
+            Episode_result.OUT
+        ]:
             self.policy = policy_list[2]
         # 3478 out
-        elif final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [Episode_result.OUT]:
+        elif final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [
+            Episode_result.OUT
+        ]:
             self.policy = policy_list[3]
         # 1256 strike out
-        elif final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [Episode_result.STRIKE_OUT]:
+        elif final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [
+            Episode_result.STRIKE_OUT
+        ]:
             self.policy = policy_list[4]
         # 3478 strike out
-        elif final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [Episode_result.STRIKE_OUT]:
+        elif final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [
+            Episode_result.STRIKE_OUT
+        ]:
             self.policy = policy_list[5]
         # 56 walk
         elif final_action in [Move.BALL_5, Move.BALL_6] and final_result in [Episode_result.WALK]:
