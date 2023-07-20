@@ -39,19 +39,25 @@ scripts/run_exps_and_plot.sh [NUM_RUNS] [NUM_EPISODES]
 
 ### Run in Docker
 
-Build the image
+Build the image before the first run or after you make a change to the code.
 
 ```
 docker build -t bsi-pt .
 ```
 
-Run a container using the image and mount the directory to see the results.
+Run a container using the image and mount the `src/` directory to see the results.
 
 ```
 docker run -it -v $(pwd)/src:/app/src bsi-pt
 ```
 
-The figures will be generated and store in `src/fig/`, while the source data will be stored in `src/data/`. The data that create the figures will be stored in CSV format in `src/csv/`.
+You will enter an interactive shell inside the container, run the experiments using the following command:
+
+```
+scripts/run_exps_and_plot.sh [NUM_RUNS] [NUM_EPISODES]
+```
+
+The raw data will be stored in `src/data/` in `.pkl` format. The figures will be generated from those data and stored in `src/fig/`, then the data points in the figures will be stored in CSV format in `src/csv/`.
 
 If you want to run the experiments individually or inspect each algorithm in detail, see [this document](src.md).
 

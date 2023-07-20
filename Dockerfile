@@ -10,4 +10,4 @@ COPY src ./src
 
 COPY scripts ./scripts
 
-CMD ["scripts/run_exps_and_plot.sh", "2", "10"]
+CMD ["/bin/bash"]
