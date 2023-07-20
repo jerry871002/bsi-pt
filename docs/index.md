@@ -21,13 +21,37 @@ Benchmarked in three environments
 
 ## Getting Started
 
-To reproduce the results in the paper, run the following command:
+To reproduce the results in the paper, use the `scripts/run_exps_and_plot.sh` script. There are two ways to run the script.
+
+### Run locally
+
+Make sure you have Python 3.8+ installed, then install the dependencies in `requirements.txt` using `pip`.
+
+```
+pip install -r requirements.txt
+```
+
+Then run the following command:
 
 ```
 scripts/run_exps_and_plot.sh [NUM_RUNS] [NUM_EPISODES]
 ```
 
-the figures will be generated and store in `src/fig/`, while the source data will be stored in `src/data/` and `src/csv/`.
+### Run in Docker
+
+Build the image
+
+```
+docker build -t bsi-pt .
+```
+
+Run a container using the image and mount the directory to see the results.
+
+```
+docker run -it -v $(pwd)/src:/app/src bsi-pt
+```
+
+The figures will be generated and store in `src/fig/`, while the source data will be stored in `src/data/`. The data that create the figures will be stored in CSV format in `src/csv/`.
 
 If you want to run the experiments individually or inspect each algorithm in detail, see [this document](src.md).
 
