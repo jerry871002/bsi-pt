@@ -11,6 +11,7 @@ State = List[int]
 
 class Move(Enum):
     # the location to which the pitcher decides to throw or the batter decides to hit
+    # see Fig. 2(a) in the paper
     STRIKE_ALL = 0
     STRIKE_1 = 1
     STRIKE_2 = 2
@@ -22,7 +23,7 @@ class Move(Enum):
     BALL_8 = 8
 
 
-class Episode_result(Enum):
+class EpisodeResult(Enum):
     HIT = 0
     OUT = 1
     STRIKE_OUT = 2
@@ -76,6 +77,7 @@ class BaseballGame:
         Returns:
             np.ndarray: The performance model.
         """
+        # see Table 3 in the paper
         performance_model = [
             [0.448, 0.254, 0.254, 0.247],
             [0.254, 0.448, 0.247, 0.254],
@@ -90,7 +92,7 @@ class BaseballGame:
         self.steps = 0
         return self.state
 
-    def step(self, agent_action: Move, stochastic=True) -> Tuple[bool, int, State, Tuple[Move, Move], Episode_result]:
+    def step(self, agent_action: Move, stochastic=True) -> Tuple[bool, int, State, Tuple[Move, Move], EpisodeResult]:
         # return done, reward, next_state, [agent_action, opponent_action]
         if not isinstance(agent_action, Move):
             raise ValueError('Action should be represented by the `Move` class')
@@ -265,6 +267,7 @@ class BaseballGame:
         return real_action
 
     def generate_probs(self, agent_action, op_action) -> Tuple[float, float, float]:
+        # see Appendix A in the paper
         match_probs = (0.95, 0.85, 0.6)
         mismatch_probs = tuple(0.1 + (ele - 0.5) / 5 for ele in match_probs)
         general_probs = (0.9, 0.7, 0.3)  # when agent action = 0 (strike all)
@@ -314,7 +317,7 @@ class BaseballGame:
 
     def generate_result(
         self, swing_prob, hit_prob, score_prob, state_, op_action
-    ) -> Tuple[bool, int, List[int], Episode_result]:
+    ) -> Tuple[bool, int, List[int], EpisodeResult]:
         # given the u1, v1, w1 probabilities and the state, op_action
         # return the result of this state (hit, out swing&miss stand)
         swing, hit, score, reward, result = False, False, False, 0, None
@@ -328,14 +331,14 @@ class BaseballGame:
                 if score:
                     # print("Agent scores")
                     self.hit_count += 1
-                    result = Episode_result.HIT
+                    result = EpisodeResult.HIT
                     # episode ends, agent scores
                     done = True
                     reward = self.reward_score
                 else:
                     # print("Agent is out")
                     self.hit_out_count += 1
-                    result = Episode_result.OUT
+                    result = EpisodeResult.OUT
                     # episode ends, agent out
                     done = True
                     reward = self.reward_out
@@ -359,12 +362,12 @@ class BaseballGame:
         if state_[0] >= 3:
             # 3 strikes, agent is out
             self.strike_out_count += 1
-            result = Episode_result.STRIKE_OUT
+            result = EpisodeResult.STRIKE_OUT
             done = True
             reward = self.reward_out
         elif state_[1] >= 4:
             # 4 balls, agent gets base on balls (BB)
-            result = Episode_result.WALK
+            result = EpisodeResult.WALK
             self.walk_count += 1
             done = True
             reward = self.reward_score
@@ -715,13 +718,13 @@ class PhiOpponent(Opponent):
             if (
                 (
                     final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8]
-                    and final_result in [Episode_result.HIT, Episode_result.WALK]
+                    and final_result in [EpisodeResult.HIT, EpisodeResult.WALK]
                 )
                 or (
                     final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6]
-                    and final_result in [Episode_result.OUT, Episode_result.STRIKE_OUT]
+                    and final_result in [EpisodeResult.OUT, EpisodeResult.STRIKE_OUT]
                 )
-                or (final_action in [Move.BALL_7, Move.BALL_8] and final_result is Episode_result.WALK)
+                or (final_action in [Move.BALL_7, Move.BALL_8] and final_result is EpisodeResult.WALK)
             ):
                 self.policy = self.Policy.ONE
             else:
@@ -732,13 +735,13 @@ class PhiOpponent(Opponent):
             if (
                 (
                     final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8]
-                    and final_result in [Episode_result.HIT, Episode_result.WALK]
+                    and final_result in [EpisodeResult.HIT, EpisodeResult.WALK]
                 )
                 or (
                     final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6]
-                    and final_result in [Episode_result.OUT, Episode_result.STRIKE_OUT]
+                    and final_result in [EpisodeResult.OUT, EpisodeResult.STRIKE_OUT]
                 )
-                or (final_action in [Move.BALL_7, Move.BALL_8] and final_result is Episode_result.WALK)
+                or (final_action in [Move.BALL_7, Move.BALL_8] and final_result is EpisodeResult.WALK)
             ):
                 self.policy = self.Policy.FOUR
             else:
@@ -748,10 +751,10 @@ class PhiOpponent(Opponent):
             # if (1256 hit) or (1256 stirke out)
             if (
                 final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6]
-                and final_result is Episode_result.HIT
+                and final_result is EpisodeResult.HIT
             ) or (
                 final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8]
-                and final_result is Episode_result.OUT
+                and final_result is EpisodeResult.OUT
             ):
                 self.policy = self.Policy.ONE
             else:
@@ -759,7 +762,7 @@ class PhiOpponent(Opponent):
         # phi 9
         elif self.phi is self.Phi.NINE:
             # if hit/walk
-            if final_result in [Episode_result.HIT, Episode_result.WALK]:
+            if final_result in [EpisodeResult.HIT, EpisodeResult.WALK]:
                 self.policy = self.Policy.FOUR
             else:
                 self.policy = self.Policy.THREE
@@ -767,47 +770,47 @@ class PhiOpponent(Opponent):
         elif self.phi is self.Phi.TEN:
 
             if final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [
-                Episode_result.HIT
+                EpisodeResult.HIT
             ]:
                 self.policy = self.Policy.THREE
             elif final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [
-                Episode_result.HIT
+                EpisodeResult.HIT
             ]:
                 self.policy = self.Policy.ONE
             elif final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [
-                Episode_result.OUT
+                EpisodeResult.OUT
             ]:
                 self.policy = self.Policy.FOUR
             elif final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [
-                Episode_result.OUT
+                EpisodeResult.OUT
             ]:
                 self.policy = self.Policy.THREE
             elif final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [
-                Episode_result.STRIKE_OUT
+                EpisodeResult.STRIKE_OUT
             ]:
                 self.policy = self.Policy.ONE
             elif final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [
-                Episode_result.STRIKE_OUT
+                EpisodeResult.STRIKE_OUT
             ]:
                 self.policy = self.Policy.THREE
-            elif final_action in [Move.BALL_5, Move.BALL_6] and final_result in [Episode_result.WALK]:
+            elif final_action in [Move.BALL_5, Move.BALL_6] and final_result in [EpisodeResult.WALK]:
                 self.policy = self.Policy.FOUR
-            elif final_action in [Move.BALL_7, Move.BALL_8] and final_result in [Episode_result.WALK]:
+            elif final_action in [Move.BALL_7, Move.BALL_8] and final_result in [EpisodeResult.WALK]:
                 self.policy = self.Policy.ONE
 
         # phi 11 resembles phi5
         elif self.phi is self.Phi.ELEVEN:
             if final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [
-                Episode_result.HIT
+                EpisodeResult.HIT
             ]:
                 self.policy = self.Policy.THREE
             elif final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [
-                Episode_result.HIT
+                EpisodeResult.HIT
             ]:
                 self.policy = self.Policy.ONE
-            elif final_action in [Move.BALL_5, Move.BALL_6] and final_result in [Episode_result.WALK]:
+            elif final_action in [Move.BALL_5, Move.BALL_6] and final_result in [EpisodeResult.WALK]:
                 self.policy = self.Policy.FOUR
-            elif final_action in [Move.BALL_7, Move.BALL_8] and final_result in [Episode_result.WALK]:
+            elif final_action in [Move.BALL_7, Move.BALL_8] and final_result in [EpisodeResult.WALK]:
                 self.policy = self.Policy.TWO
             else:
                 self.policy = random.choice(list(self.Policy))
@@ -864,13 +867,13 @@ class NewPhiNoiseOpponent(Opponent):
                 if (
                     (
                         final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8]
-                        and final_result in [Episode_result.HIT, Episode_result.WALK]
+                        and final_result in [EpisodeResult.HIT, EpisodeResult.WALK]
                     )
                     or (
                         final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6]
-                        and final_result in [Episode_result.OUT, Episode_result.STRIKE_OUT]
+                        and final_result in [EpisodeResult.OUT, EpisodeResult.STRIKE_OUT]
                     )
-                    or (final_action in [Move.BALL_7, Move.BALL_8] and final_result is Episode_result.WALK)
+                    or (final_action in [Move.BALL_7, Move.BALL_8] and final_result is EpisodeResult.WALK)
                 ):
                     self.policy = self.Policy.ONE
                 else:
@@ -881,13 +884,13 @@ class NewPhiNoiseOpponent(Opponent):
                 if (
                     (
                         final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8]
-                        and final_result in [Episode_result.HIT, Episode_result.WALK]
+                        and final_result in [EpisodeResult.HIT, EpisodeResult.WALK]
                     )
                     or (
                         final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6]
-                        and final_result in [Episode_result.OUT, Episode_result.STRIKE_OUT]
+                        and final_result in [EpisodeResult.OUT, EpisodeResult.STRIKE_OUT]
                     )
-                    or (final_action in [Move.BALL_7, Move.BALL_8] and final_result is Episode_result.WALK)
+                    or (final_action in [Move.BALL_7, Move.BALL_8] and final_result is EpisodeResult.WALK)
                 ):
                     self.policy = self.Policy.FOUR
                 else:
@@ -897,10 +900,10 @@ class NewPhiNoiseOpponent(Opponent):
                 # if (3478 hit) or (1256 stirke out)
                 if (
                     final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6]
-                    and final_result is Episode_result.HIT
+                    and final_result is EpisodeResult.HIT
                 ) or (
                     final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8]
-                    and final_result is Episode_result.OUT
+                    and final_result is EpisodeResult.OUT
                 ):
                     self.policy = self.Policy.ONE
                 else:
@@ -908,22 +911,22 @@ class NewPhiNoiseOpponent(Opponent):
             # phi 9
             elif self.phi is PhiOpponent.Phi.NINE:
                 # if hit/walk
-                if final_result in [Episode_result.HIT, Episode_result.WALK]:
+                if final_result in [EpisodeResult.HIT, EpisodeResult.WALK]:
                     self.policy = self.Policy.FOUR
                 else:
                     self.policy = self.Policy.THREE
             # phi 10 resembles phi6
             elif self.phi is PhiOpponent.Phi.TEN:
                 # if (12 hit) or (56 hit/walk)
-                if (final_action in [Move.STRIKE_1, Move.STRIKE_2] and final_result is Episode_result.HIT) or (
+                if (final_action in [Move.STRIKE_1, Move.STRIKE_2] and final_result is EpisodeResult.HIT) or (
                     final_action in [Move.BALL_5, Move.BALL_6]
-                    and final_result in [Episode_result.HIT, Episode_result.WALK]
+                    and final_result in [EpisodeResult.HIT, EpisodeResult.WALK]
                 ):
                     self.policy = self.Policy.FOUR
                 # if (3478 out/strike out)
                 elif final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [
-                    Episode_result.OUT,
-                    Episode_result.STRIKE_OUT,
+                    EpisodeResult.OUT,
+                    EpisodeResult.STRIKE_OUT,
                 ]:
                     self.policy = self.Policy.THREE
                 else:
@@ -931,15 +934,15 @@ class NewPhiNoiseOpponent(Opponent):
             # phi 11 resembles phi7
             elif self.phi is PhiOpponent.Phi.ELEVEN:
                 # if (12 hit) or (56 hit/walk)
-                if (final_action in [Move.STRIKE_1, Move.STRIKE_2] and final_result is Episode_result.HIT) or (
+                if (final_action in [Move.STRIKE_1, Move.STRIKE_2] and final_result is EpisodeResult.HIT) or (
                     final_action in [Move.BALL_5, Move.BALL_6]
-                    and final_result in [Episode_result.HIT, Episode_result.WALK]
+                    and final_result in [EpisodeResult.HIT, EpisodeResult.WALK]
                 ):
                     self.policy = self.Policy.ONE
                 # if (3478 out/strike out)
                 elif final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [
-                    Episode_result.OUT,
-                    Episode_result.STRIKE_OUT,
+                    EpisodeResult.OUT,
+                    EpisodeResult.STRIKE_OUT,
                 ]:
                     self.policy = self.Policy.TWO
                 else:
@@ -947,13 +950,13 @@ class NewPhiNoiseOpponent(Opponent):
             # phi 12 resembles phi5
             elif self.phi is PhiOpponent.Phi.TWELVE:
                 if final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [
-                    Episode_result.HIT,
-                    Episode_result.WALK,
+                    EpisodeResult.HIT,
+                    EpisodeResult.WALK,
                 ]:
                     self.policy = self.Policy.THREE
                 elif final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [
-                    Episode_result.HIT,
-                    Episode_result.WALK,
+                    EpisodeResult.HIT,
+                    EpisodeResult.WALK,
                 ]:
                     self.policy = self.Policy.ONE
                 else:
@@ -1103,37 +1106,37 @@ class OutOfLibraryPhiOpponent(Opponent):
 
         # 1256 hit
         if final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [
-            Episode_result.HIT
+            EpisodeResult.HIT
         ]:
             self.policy = policy_list[0]
         # 3478 hit
         elif final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [
-            Episode_result.HIT
+            EpisodeResult.HIT
         ]:
             self.policy = policy_list[1]
         # 1256 out
         elif final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [
-            Episode_result.OUT
+            EpisodeResult.OUT
         ]:
             self.policy = policy_list[2]
         # 3478 out
         elif final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [
-            Episode_result.OUT
+            EpisodeResult.OUT
         ]:
             self.policy = policy_list[3]
         # 1256 strike out
         elif final_action in [Move.STRIKE_1, Move.STRIKE_2, Move.BALL_5, Move.BALL_6] and final_result in [
-            Episode_result.STRIKE_OUT
+            EpisodeResult.STRIKE_OUT
         ]:
             self.policy = policy_list[4]
         # 3478 strike out
         elif final_action in [Move.STRIKE_3, Move.STRIKE_4, Move.BALL_7, Move.BALL_8] and final_result in [
-            Episode_result.STRIKE_OUT
+            EpisodeResult.STRIKE_OUT
         ]:
             self.policy = policy_list[5]
         # 56 walk
-        elif final_action in [Move.BALL_5, Move.BALL_6] and final_result in [Episode_result.WALK]:
+        elif final_action in [Move.BALL_5, Move.BALL_6] and final_result in [EpisodeResult.WALK]:
             self.policy = policy_list[6]
         # 78 walk
-        elif final_action in [Move.BALL_7, Move.BALL_8] and final_result in [Episode_result.WALK]:
+        elif final_action in [Move.BALL_7, Move.BALL_8] and final_result in [EpisodeResult.WALK]:
             self.policy = policy_list[7]

@@ -43,94 +43,29 @@ class BprAgent(Agent):
         self._policy = new_policy
 
     def get_action(self, state) -> Move:
+        if not isinstance(self._policy, self.Policy):
+            raise ValueError(f'BprAgent with invalid policy: {self._policy}')
+            
+        # see Table 2 in the paper
+        # state = (strike, ball)
+        applicable_states = ([0, 0], [0, 1], [0, 2], [0, 3], [1, 2], [1, 3])
         if self._policy is self.Policy.ONE:
-            # (0, 0) 1
-            # (0, 1) 1
-            # (0, 2) 1
-            # (0, 3) 1
-            # (1, 0) 0
-            # (1, 1) 0
-            # (1, 2) 1
-            # (1, 3) 1
-            # (2, 0) 0
-            # (2, 1) 0
-            # (2, 2) 0
-            # (2, 3) 0
-            if state in [[0, 0], [0, 1], [0, 2], [0, 3], [1, 2], [1, 3]]:
-                # if state in [[0, 0], [0, 1], [0, 2], [0, 3], [1, 0], [1, 1], [1, 2], [1, 3]]:
+            if state in applicable_states:
                 return Move.STRIKE_1
-            else:
-                return Move.STRIKE_ALL
         elif self._policy is self.Policy.TWO:
-            # (0, 0) 2
-            # (0, 1) 2
-            # (0, 2) 2
-            # (0, 3) 2
-            # (1, 0) 0
-            # (1, 1) 0
-            # (1, 2) 2
-            # (1, 3) 2
-            # (2, 0) 0
-            # (2, 1) 0
-            # (2, 2) 0
-            # (2, 3) 0
-            if state in [[0, 0], [0, 1], [0, 2], [0, 3], [1, 2], [1, 3]]:
+            if state in applicable_states:
                 return Move.STRIKE_2
-            else:
-                return Move.STRIKE_ALL
         elif self._policy is self.Policy.THREE:
-            # (0, 0) 3
-            # (0, 1) 3
-            # (0, 2) 3
-            # (0, 3) 3
-            # (1, 0) 0
-            # (1, 1) 0
-            # (1, 2) 3
-            # (1, 3) 3
-            # (2, 0) 0
-            # (2, 1) 0
-            # (2, 2) 0
-            # (2, 3) 0
-            if state in [[0, 0], [0, 1], [0, 2], [0, 3], [1, 2], [1, 3]]:
+            if state in applicable_states:
                 return Move.STRIKE_3
-            else:
-                return Move.STRIKE_ALL
         elif self._policy is self.Policy.FOUR:
-            # (0, 0) 4
-            # (0, 1) 4
-            # (0, 2) 4
-            # (0, 3) 4
-            # (1, 0) 0
-            # (1, 1) 0
-            # (1, 2) 4
-            # (1, 3) 4
-            # (2, 0) 0
-            # (2, 1) 0
-            # (2, 2) 0
-            # (2, 3) 0
-            if state in [[0, 0], [0, 1], [0, 2], [0, 3], [1, 2], [1, 3]]:
+            if state in applicable_states:
                 return Move.STRIKE_4
-            else:
-                return Move.STRIKE_ALL
         elif self._policy is self.Policy.FIVE:
-            # (0, 0) 0
-            # (0, 1) 0
-            # (0, 2) 1
-            # (0, 3) 1
-            # (1, 0) 0
-            # (1, 1) 0
-            # (1, 2) 0
-            # (1, 3) 0
-            # (2, 0) 0
-            # (2, 1) 0
-            # (2, 2) 0
-            # (2, 3) 0
-            if state in [[0, 2], [0, 3]]:
+            if state in ([0, 2], [0, 3]):
                 return Move.STRIKE_1
-            else:
-                return Move.STRIKE_ALL
 
-        raise ValueError(f'BprAgent with policy {self._policy}')
+        return Move.STRIKE_ALL
 
 
 class BprPlusAgent(BprAgent):
@@ -139,7 +74,6 @@ class BprPlusAgent(BprAgent):
 
     def update_belief(self, utility: int):
         # posterior (belief) = prior * likelihood (performance model)
-
         likelihood = np.reciprocal(
             (np.abs((self.PERFORMANCE_MODEL[:, self.policy.value - 1]) - utility) + 1).astype(float)
         )
@@ -389,14 +323,13 @@ class BsiBaseAgent(BprAgent):
         # directly use the observation model in intra_belief_model instead of using the terminal state as the parameter
         observation_model = self.intra_belief_model.prob_experience_queue()
         phi_belief_unnormalized = observation_model @ self.op_strategy_model.transpose() * self.phi_belief
-        self.phi_belief = normalize_distribution(phi_belief_unnormalized, 0.0001)  # 0.0001  #0.01
+        self.phi_belief = normalize_distribution(phi_belief_unnormalized, 0.0001)
 
     def infer_tau(self):
         """
         Find the distribution of next opponent tau with current `phi_belief`.
         Use the inferred tau as the inter-epidose belief and set it as initial intra-episode belief.
         """
-
         if len(self.sigma_queue) <= 1:
             return
 
@@ -449,15 +382,12 @@ class BsiPtAgent(BsiBaseAgent):
         Use the inferred tau as the inter-epidose belief and set it as initial intra-episode belief.
         """
         super().infer_tau()
-
-        # self.belief = np.ones(4)/4 * 0.4 + self.belief * 0.6
         self.intra_belief_model.intra_belief = self.belief
 
     def infer_tau2(self):
         """
         Use the uniform tau as initial intra-episode belief.
         """
-
         self.intra_belief_model.intra_belief = self.belief
 
     def update_intra_belief(self) -> None:
@@ -486,7 +416,6 @@ class BsiPtAgent(BsiBaseAgent):
         # now we fix it to randomly choose between those who have the same values
         belief_mul_performance = self.intra_belief_model.intra_belief @ self.PERFORMANCE_MODEL
         candidates = np.argwhere(belief_mul_performance == np.amax(belief_mul_performance)).flatten().tolist()
-        # print('123',belief_mul_performance,candidates)
         self.policy = list(self.Policy)[random.choice(candidates)]
 
 
@@ -564,10 +493,10 @@ class IntraBeliefModel:
         )
         situation2 = np.array(
             [
-                [4 * mu2, 1 * mu2, 1 * mu2, 1 * mu2, action_control_constant_mu1, 4 * mu2, 4 * mu2, 1 * mu2],
-                [1 * mu2, 4 * mu2, 1 * mu2, 1 * mu2, 4 * mu2, action_control_constant_mu1, 1 * mu2, 4 * mu2],
-                [1 * mu2, 1 * mu2, 4 * mu2, 1 * mu2, 4 * mu2, 1 * mu2, action_control_constant_mu1, 4 * mu2],
-                [1 * mu2, 1 * mu2, 1 * mu2, 4 * mu2, 1 * mu2, 4 * mu2, 4 * mu2, action_control_constant_mu1],
+                [4 * mu2, mu2, mu2, mu2, action_control_constant_mu1, 4 * mu2, 4 * mu2, mu2],
+                [mu2, 4 * mu2, mu2, mu2, 4 * mu2, action_control_constant_mu1, mu2, 4 * mu2],
+                [mu2, mu2, 4 * mu2, mu2, 4 * mu2, mu2, action_control_constant_mu1, 4 * mu2],
+                [mu2, mu2, mu2, 4 * mu2, mu2, 4 * mu2, 4 * mu2, action_control_constant_mu1],
             ]
         )
         situation3 = np.array(
