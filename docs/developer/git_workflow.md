@@ -19,7 +19,6 @@ Use all-lower-cased messages with a prefix. The prefix can be one of the followi
 - `refactor`: code refactor
 - `perf`: tune performance
 - `test`: test
-- `ci`: CI pipeline
 - `chore`: other stuff
 
 The title should be a manageable length. Details can be added in the body. For example, a commit message like this is probably a bad idea.
