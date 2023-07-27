@@ -6,7 +6,8 @@ The `master` branch is protected and commits can only be added via a reviewed PR
 
 ## Commit Message
 
-> See [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) for more details
+!!! note
+    See [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) for more details
 
 Use all-lower-cased messages with a prefix. The prefix can be one of the following
 
@@ -34,4 +35,15 @@ feat: implement user authentication and authorization
 
 - add login, registration, and password reset
 - enforce role-based access control
+```
+
+## Checkout a remote branch
+
+!!! note
+    See [`git fetch` a remote branch - Stack Overflow](https://stackoverflow.com/questions/9537392/git-fetch-a-remote-branch) for more details
+
+Suppose your teammate pushed a branch named `fix-grid-env` and you want to continue to work based on this branch, you can use `git switch` to checkout this branch.
+
+```bash
+git switch fix-grid-env
 ```
