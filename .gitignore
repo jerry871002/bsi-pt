@@ -3,12 +3,23 @@
 __pycache__/
 .ipynb_checkpoints/
 
-data/
+# environments
+.env
+.venv
+env/
+venv/
 
+# pickle files to store the experiment results
+data/
+*.pki
+
+# experiment logs
 logs/
 *.log
 
+# experiment figures
 fig/
 
+# figure date in csv format
 csv/
 *.csv
