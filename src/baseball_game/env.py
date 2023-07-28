@@ -375,9 +375,10 @@ class BaseballGame:
         return done, reward, state_, result
 
     def show(self, actions):
+        print('------- Current State ---------')
         agent = 'A'
         opponent = 'O'
-
+        # TODO: variable name 'agent_position' should be changed
         if actions[0] == Move.STRIKE_1:
             agent_position = (1, 1)
         elif actions[0] == Move.STRIKE_2:
@@ -423,7 +424,7 @@ class BaseballGame:
                 else:
                     print('.', end='')
             print()
-
+        print('------------------------')
 
 class Agent:
     def __init__(self, x=None, y=None):

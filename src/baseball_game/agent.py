@@ -82,6 +82,7 @@ class BprPlusAgent(BprAgent):
         self.belief = normalize_distribution(belief_unnormalized, 0.001)
 
     def update_policy(self):
+        # update policy based on belief and performance model
         belief_mul_performance = self.belief @ self.PERFORMANCE_MODEL
         candidates = np.argwhere(belief_mul_performance == np.amax(belief_mul_performance)).flatten().tolist()
         self.policy = list(self.Policy)[random.choice(candidates)]

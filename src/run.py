@@ -12,6 +12,9 @@ def run(args: argparse.Namespace) -> None:
     elif args.scenario == 'soccer':
         from soccer_game.run import (run_bpr_okr, run_bpr_plus, run_bsi,
                                      run_bsi_pt, run_deep_bpr_plus, run_tom)
+    elif args.scenario == 'baseball':
+        from baseball_game.run import (run_bpr_okr, run_bpr_plus, run_bsi,
+                                       run_bsi_pt, run_deep_bpr_plus)
 
     if args.agent == 'bpr+':
         run_bpr_plus(args)
@@ -35,7 +38,7 @@ def positive_int(value: str) -> int:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run the experiment in a given scenario with an agent type')
     parser.add_argument(
-        'scenario', type=str, choices=('grid', 'nav', 'soccer'),
+        'scenario', type=str, choices=('grid', 'nav', 'soccer', 'baseball'),
         help='the scenario you would like to run on'
     )
     parser.add_argument(
