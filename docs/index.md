@@ -28,5 +28,5 @@ In addition to the EBvPG environment, which is under the `baseball_game/` direct
 
 [^bpr]: Hernandez-Leal, Pablo, et al. "Identifying and tracking switching, non-stationary opponents: A Bayesian approach." (2016).
 [^dpn-bpr]: Zheng, Yan, et al. "Efficient policy detecting and reusing for non-stationarity in Markov games." (2021).
-[^tom]: Yang, Tianpei, et al. "Towards efficient detection and optimal response against sophisticated opponents." (2018).
 [^okr]: Chen, Hao, et al. "Accurate policy detection and efficient knowledge reuse against multi-strategic opponents." (2022).
+[^tom]: Yang, Tianpei, et al. "Towards efficient detection and optimal response against sophisticated opponents." (2018).
