@@ -1,16 +1,36 @@
 site_name: BSI-PT Documentation
+repo_url: https://github.com/jerry871002/bayesian-strategy-inference
+
 theme:
   name: material
+  icon:
+    repo: fontawesome/brands/github
   palette:
     # Palette toggle for light mode
     - scheme: default
+      primary: deep orange
+      accent: orange
       toggle:
         icon: material/weather-night
         name: Switch to dark mode
     # Palette toggle for dark mode
     - scheme: slate
+      primary: deep orange
+      accent: orange
       toggle:
         icon: material/weather-sunny
         name: Switch to light mode
+  features:
+    - content.code.copy
+
 markdown_extensions:
+  - abbr
+  - admonition
   - footnotes
+
+extra_javascript:
+  - javascripts/katex.js 
+  - https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/katex.min.js
+  - https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/contrib/auto-render.min.js
+extra_css:
+  - https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/katex.min.css
