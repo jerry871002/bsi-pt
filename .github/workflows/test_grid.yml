@@ -1,4 +1,4 @@
-name: Test opponents' algorithms
+name: Test algorithms in grid world environment
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   test:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
 
     strategy:
       matrix:
@@ -21,10 +21,9 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install numpy
-          pip install scipy
+          pip install -r requirements.txt
 
-      - name: Test all agents
+      - name: Test grid world
         run: |
-          chmod +x scripts/test_opponents.sh
-          scripts/test_opponents.sh
+          chmod +x tests/test_grid.sh
+          tests/test_grid.sh
