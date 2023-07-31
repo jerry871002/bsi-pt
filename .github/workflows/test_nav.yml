@@ -1,4 +1,4 @@
-name: Test algorithms in navigation game environment
+name: Test in navigation game environment
 
 on:
   push:

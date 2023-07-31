@@ -1,4 +1,4 @@
-name: Test algorithms in soccer game environment
+name: Test in soccer game environment
 
 on:
   push:
