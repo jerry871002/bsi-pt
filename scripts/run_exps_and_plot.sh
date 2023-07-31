@@ -3,6 +3,9 @@
 # Run all the experiments in our paper
 # save the results and plot them
 
+# exit the script if any statement returns a non-true return value
+set -e
+
 program_name=$0
 
 function usage {
@@ -25,8 +28,7 @@ cd src/
 mkdir -p logs/
 
 declare -a exp_nums=("1" "2" "3")
-# declare -a scenarios=("grid" "nav" "soccer")
-declare -a scenarios=("nav")
+declare -a scenarios=("grid" "nav" "soccer")
 
 i=1
 
@@ -35,7 +37,7 @@ do
     for scenario in "${scenarios[@]}"
     do
         printf "Running experiment $exp_num on $scenario\n"
-        python run_exp_and_plot.py -e $exp_num -s $scenario -r $num_runs -n $num_episodes > logs/exp${exp_num}_${scenario}.log 2>&1
+        python run_exp_and_plot.py -e $exp_num -s $scenario -r $num_runs -n $num_episodes > logs/exp${exp_num}_${scenario}.log
 
         secs=$SECONDS
         mins=$(( secs/60 ))

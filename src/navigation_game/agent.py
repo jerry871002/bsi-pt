@@ -341,7 +341,7 @@ class BprOkrAgent(BprAgent):
         # PERFORMANCE_MODEL(pi2) = [-108, 42, -108, -110], utility = 40
         # abs(PERFORMANCE_MODEL(pi2) - utility) = [148, 2, 148, 150]
         # reciprocal([148, 2, 148, 150]) = [0.0068, 0.5, 0.0068, 0.0067]
-        # normalize([0.0068, 0.5, 0.0068, 0.0067]) = [0.013, 0.961, 0.013, 0.01288]')
+        # normalize([0.0068, 0.5, 0.0068, 0.0067]) = [0.013, 0.961, 0.013, 0.01288]
         likelihood = np.reciprocal(
             (np.abs((self.PERFORMANCE_MODEL[:, self.policy.value-1]) - utility) + 1).astype(float)
         )
