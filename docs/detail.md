@@ -23,7 +23,7 @@ The usage is as follow, no files will be generated after the run, all outputs wi
 
 ```bash
 # run bsi in navigation game against phi 5 opponent
-python run.py nav bsi -n 10 -po -ph 5 
+python run.py nav bsi -n 10 -po -ph 5
 
 # run bsi-pt in grid world against phi 6 opponent
 python run.py grid bsi-pt -n 10 -po -ph 6
