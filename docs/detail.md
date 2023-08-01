@@ -1,14 +1,14 @@
-# Run the Experiments Individually
+# Run Individually
 
-## Getting Started
+## Entry Points
 
-There are three entry points of this project
+There are three entry points of this project.
 
-- `run.py`: Run the experiment in a given scenario with an agent type
-- `run_experiment.py`: Run **multiple runs** of a experiment in a given scenario with an agent type
+- `run.py`: Run a game in a given environment with an agent and an opponent type
+- `run_experiment.py`: Run **multiple runs** of a game in a given scenario with an agent and an opponent type
 - `run_exp_and_plot.py`: Run a experiment in the paper and plot the results
 
-At a high level, the `run_exps_and_plot.sh` script calls `run_exp_and_plot.py` multiple times to produce results of multiple experiments. And each run of `run_exp_and_plot.py` includes a call to `run_experiment.py` which runs a multiple-runs experiment under a given scenario and agent type.
+From a high level, the `run_exps_and_plot.sh` script calls `run_exp_and_plot.py` multiple times to produce results of multiple experiments. And each run of `run_exp_and_plot.py` includes a call to `run_experiment.py` which runs a multiple-runs experiment under a given scenario and agent type.
 
 On the other hand, `run.py` provides a finer granularity of only running one run at a time, it's best to start from `run.py` to get better understanding of how the code works.
 
@@ -23,7 +23,7 @@ The usage is as follow, no files will be generated after the run, all outputs wi
 
 ```bash
 # run bsi in navigation game against phi 5 opponent
-python run.py nav bsi -n 10 -po -ph 5 
+python run.py nav bsi -n 10 -po -ph 5
 
 # run bsi-pt in grid world against phi 6 opponent
 python run.py grid bsi-pt -n 10 -po -ph 6

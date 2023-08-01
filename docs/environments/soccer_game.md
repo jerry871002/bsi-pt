@@ -21,11 +21,11 @@ env.show()
 The `env.show()` will print out the following result
 
 ```
- ...... 
+ ......
 +......+
 +..△●..+
 +......+
- ...... 
+ ......
 ```
 
 ## Move the agent
