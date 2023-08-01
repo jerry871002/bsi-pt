@@ -321,35 +321,29 @@ class BaseballGame:
         # given the u1, v1, w1 probabilities and the state, op_action
         # return the result of this state (hit, out swing&miss stand)
         swing, hit, score, reward, result = False, False, False, 0, None
-        swing = np.random.choice([True, False], 1, p=[swing_prob, 1 - swing_prob])
+        swing = True if random.random() < swing_prob else False
         if swing:
-            # print("Agent swings the bat")
-            hit = np.random.choice([True, False], 1, p=[hit_prob, 1 - hit_prob])
+            hit = True if random.random() < hit_prob else False
             if hit:
-                # print("Agent hits the ball")
-                score = np.random.choice([True, False], 1, p=[score_prob, 1 - score_prob])
+                score = True if random.random() < score_prob else False
                 if score:
-                    # print("Agent scores")
                     self.hit_count += 1
                     result = EpisodeResult.HIT
                     # episode ends, agent scores
                     done = True
                     reward = self.reward_score
                 else:
-                    # print("Agent is out")
                     self.hit_out_count += 1
                     result = EpisodeResult.OUT
                     # episode ends, agent out
                     done = True
                     reward = self.reward_out
             else:
-                # print("Agent swings and misses")
-                # swing & miss, strike + 1
+                # agent swings & misses, strike + 1
                 done = False
                 reward = 0
                 state_[0] += 1
         else:
-            # print("Agent stands and does nothing")
             # stand, should further determine whether it is a strike or ball
             done = False
             if op_action in [Move.STRIKE_1, Move.STRIKE_2, Move.STRIKE_3, Move.STRIKE_4]:

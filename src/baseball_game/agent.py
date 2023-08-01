@@ -484,6 +484,7 @@ class IntraBeliefModel:
 
         action_control_constant_mu1 = 0.6  # mu1: probability of the action that is most likely to happen
         mu2 = (1 - action_control_constant_mu1) / 16  # define the probability of other less likely actions
+        # when state (strike, ball) is ()
         situation1 = np.array(
             [
                 [action_control_constant_mu1, 4 * mu2, 4 * mu2, 4 * mu2, mu2, mu2, mu2, mu2],
