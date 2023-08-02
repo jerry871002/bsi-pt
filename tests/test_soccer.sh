@@ -6,7 +6,7 @@ set -ex
 declare -a agents=("bpr+" "deep-bpr+" "tom" "bpr-okr" "bsi" "bsi-pt")
 
 top_dir=$(git rev-parse --show-toplevel)
-cd $top_dir/src/
+cd "$top_dir/src/"
 
 for agent in "${agents[@]}"
 do

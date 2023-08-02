@@ -1,17 +1,19 @@
-
 import argparse
 import random
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
 
 import numpy as np
-from scipy.special import kl_div, rel_entr
 
-from utils import normalize_distribution
-
-from .agent import (BprAgent, BprOkrAgent, BprPlusAgent, BsiAgent, BsiPtAgent,
-                    DeepBprPlusAgent, TomAgent)
-from .env import (GridWorld, Location, NewPhiNoiseOpponent, NewPhiOpponent,
-                  Opponent, PhiOpponent)
+from .agent import (
+    BprAgent,
+    BprOkrAgent,
+    BprPlusAgent,
+    BsiAgent,
+    BsiPtAgent,
+    DeepBprPlusAgent,
+    TomAgent,
+)
+from .env import GridWorld, Location, NewPhiNoiseOpponent, NewPhiOpponent, Opponent, PhiOpponent
 
 
 def run_bpr_plus(args: argparse.Namespace, **kwargs) -> Dict:
@@ -56,13 +58,17 @@ def run_bpr_plus(args: argparse.Namespace, **kwargs) -> Dict:
 
         agent.update_belief(total_reward)
         agent.update_policy()
-        opponent_update_policy(args=args, env=env, episode=i, reward=total_reward, ternimal_state=(state[:2], state[2:]))
+        opponent_update_policy(
+            args=args,
+            env=env,
+            episode=i,
+            reward=total_reward,
+            ternimal_state=(state[:2], state[2:]),
+        )
 
     print(f'Rewards: {rewards}')
-    return {
-        'rewards': rewards,
-        'win_records': win_records
-    }
+    return {'rewards': rewards, 'win_records': win_records}
+
 
 def run_deep_bpr_plus(args: argparse.Namespace, **kwargs) -> Dict:
     setup_initial_policy(args)
@@ -82,7 +88,7 @@ def run_deep_bpr_plus(args: argparse.Namespace, **kwargs) -> Dict:
 
         total_reward = 0
         state = env.reset()
-        state_batch = [state[2:]] # record the states of the opponent to calculate tau_hat
+        state_batch = [state[2:]]  # record the states of the opponent to calculate tau_hat
         while True:
             if args.print_map:
                 print('------- Map ---------')
@@ -108,16 +114,20 @@ def run_deep_bpr_plus(args: argparse.Namespace, **kwargs) -> Dict:
             if state[2:] != state_batch[-1]:
                 state_batch.append(state[2:])
 
-        agent.compute_tau_hat(state_batch) # use opponent model to estimate tau hat
+        agent.compute_tau_hat(state_batch)  # use opponent model to estimate tau hat
         agent.update_belief(total_reward)  # use the episodic return to update belief
         agent.update_policy()
-        opponent_update_policy(args=args, env=env, episode=i, reward=total_reward, ternimal_state=(state[:2], state[2:]))
+        opponent_update_policy(
+            args=args,
+            env=env,
+            episode=i,
+            reward=total_reward,
+            ternimal_state=(state[:2], state[2:]),
+        )
 
     print(f'Rewards: {rewards}')
-    return {
-        'rewards': rewards,
-        'win_records': win_records
-    }
+    return {'rewards': rewards, 'win_records': win_records}
+
 
 def run_tom(args: argparse.Namespace, **kwargs) -> Dict:
     setup_initial_policy(args)
@@ -164,7 +174,7 @@ def run_tom(args: argparse.Namespace, **kwargs) -> Dict:
                 break
 
         # compute the agent's zero-order belief
-        agent.update_belief(current_n_episode=i+1, rewards=rewards)
+        agent.update_belief(current_n_episode=i + 1, rewards=rewards)
 
         # compute the first-order opponent policy prediction
         agent.compute_first_order_prediction()
@@ -175,13 +185,17 @@ def run_tom(args: argparse.Namespace, **kwargs) -> Dict:
         # select the optimal policy
         agent.update_policy()
 
-        opponent_update_policy(args=args, env=env, episode=i, reward=total_reward, ternimal_state=(state[:2], state[2:]))
+        opponent_update_policy(
+            args=args,
+            env=env,
+            episode=i,
+            reward=total_reward,
+            ternimal_state=(state[:2], state[2:]),
+        )
 
     print(f'Rewards: {rewards}')
-    return {
-        'rewards': rewards,
-        'win_records': win_records
-    }
+    return {'rewards': rewards, 'win_records': win_records}
+
 
 def run_bpr_okr(args: argparse.Namespace, **kwargs) -> Dict:
     setup_initial_policy(args)
@@ -219,7 +233,9 @@ def run_bpr_okr(args: argparse.Namespace, **kwargs) -> Dict:
             performance_model = env.generate_performance_model(start_state=start_state)
             agent.PERFORMANCE_MODEL = performance_model
 
-            agent.add_experience_queue(state[2:], actions[1])  # only add the opponent's location and action to the experience queue
+            agent.add_experience_queue(
+                state[2:], actions[1]
+            )  # only add the opponent's location and action to the experience queue
             agent.update_intra_belief()
             agent.update_policy(integrated_belief=True)  # compute the current integrated belief
 
@@ -234,7 +250,10 @@ def run_bpr_okr(args: argparse.Namespace, **kwargs) -> Dict:
                 break
 
             print(f'(Step {env.steps}) Intra-belief is updated to {agent.intra_belief}')
-            print(f'(Step {env.steps}) Agent policy is {agent.policy}, Opponent policy is {env.opponent.policy}')
+            print(
+                f'(Step {env.steps}) Agent policy is {agent.policy}, '
+                f'Opponent policy is {env.opponent.policy}'
+            )
 
             state = state_
 
@@ -246,13 +265,17 @@ def run_bpr_okr(args: argparse.Namespace, **kwargs) -> Dict:
         agent.clear_experience_queue()  # empty the queue
         agent.reset_intra_belief()  # assign the inter-epsode belief to the intra-episode beleif
         agent.update_policy()
-        opponent_update_policy(args=args, env=env, episode=i, reward=total_reward, ternimal_state=(state_[:2], state_[2:]))
+        opponent_update_policy(
+            args=args,
+            env=env,
+            episode=i,
+            reward=total_reward,
+            ternimal_state=(state_[:2], state_[2:]),
+        )
 
     print(f'Rewards: {rewards}')
-    return {
-        'rewards': rewards,
-        'win_records': win_records
-    }
+    return {'rewards': rewards, 'win_records': win_records}
+
 
 def run_bsi(args: argparse.Namespace, **kwargs) -> Dict:
     setup_initial_policy(args)
@@ -268,12 +291,6 @@ def run_bsi(args: argparse.Namespace, **kwargs) -> Dict:
     phi_beliefs = []
     win_records = []
     policy_preds = []
-    kl_divergences: Dict[str, List] = {
-        'rel_entr(real, belief)': [],
-        'rel_entr(belief, real)': [],
-        'kl_div(real, belief)': [],
-        'kl_div(belief, real)': [],
-    }
     for i in range(args.num_episodes):
         print(f'\n========== Start episode {i+1} ==========')
         print(f'Agent Phi belief is {agent.phi_belief}')
@@ -311,8 +328,6 @@ def run_bsi(args: argparse.Namespace, **kwargs) -> Dict:
 
             state = state_
 
-        append_kl_divergences(kl_divergences, real_policy=env.opponent.policy.value, belief=agent.belief)
-
         if np.argmax(agent.belief) + 1 == env.opponent.policy.value:
             policy_preds.append(True)
         else:
@@ -324,7 +339,13 @@ def run_bsi(args: argparse.Namespace, **kwargs) -> Dict:
         agent.update_policy()
         agent.clear_experience_queue()  # empty the queue
 
-        opponent_update_policy(args=args, env=env, episode=i, reward=total_reward, ternimal_state=(state_[:2], state_[2:4]))
+        opponent_update_policy(
+            args=args,
+            env=env,
+            episode=i,
+            reward=total_reward,
+            ternimal_state=(state_[:2], state_[2:4]),
+        )
 
         if i == 0:
             print('[BSI] Randomly choose a policy at the beginning of episode 2')
@@ -340,10 +361,10 @@ def run_bsi(args: argparse.Namespace, **kwargs) -> Dict:
         'rewards': rewards,
         'phi_beliefs': phi_beliefs,
         'win_records': win_records,
-        'kl_divergences': kl_divergences,
         'policy_preds': policy_preds,
-        'corresponding_phi': corresponding_phi
+        'corresponding_phi': corresponding_phi,
     }
+
 
 def run_bsi_pt(args: argparse.Namespace, **kwargs) -> Dict:
     setup_initial_policy(args)
@@ -359,12 +380,6 @@ def run_bsi_pt(args: argparse.Namespace, **kwargs) -> Dict:
     phi_beliefs = []
     win_records = []
     policy_preds = []
-    kl_divergences: Dict[str, List] = {
-        'rel_entr(real, belief)': [],
-        'rel_entr(belief, real)': [],
-        'kl_div(real, belief)': [],
-        'kl_div(belief, real)': [],
-    }
     for i in range(args.num_episodes):
         print(f'\n========== Start episode {i+1} ==========')
         print(f'Agent Phi belief is {agent.phi_belief}')
@@ -406,11 +421,12 @@ def run_bsi_pt(args: argparse.Namespace, **kwargs) -> Dict:
                 break
 
             print(f'(Step {env.steps}) Intra-belief is updated to {agent.intra_belief}')
-            print(f'(Step {env.steps}) Agent policy is {agent.policy}, Opponent policy is {env.opponent.policy}')
+            print(
+                f'(Step {env.steps}) Agent policy is {agent.policy}, '
+                f'Opponent policy is {env.opponent.policy}'
+            )
 
             state = state_
-
-        append_kl_divergences(kl_divergences, real_policy=env.opponent.policy.value, belief=agent.intra_belief)
 
         if np.argmax(agent.intra_belief) + 1 == env.opponent.policy.value:
             policy_preds.append(True)
@@ -423,7 +439,13 @@ def run_bsi_pt(args: argparse.Namespace, **kwargs) -> Dict:
         agent.update_policy()
         agent.clear_experience_queue()  # empty the queue
 
-        opponent_update_policy(args=args, env=env, episode=i, reward=total_reward, ternimal_state=(state_[:2], state_[2:4]))
+        opponent_update_policy(
+            args=args,
+            env=env,
+            episode=i,
+            reward=total_reward,
+            ternimal_state=(state_[:2], state_[2:4]),
+        )
 
         if i == 0:
             print('[BSI-PT] Randomly choose a policy at the beginning of episode 2')
@@ -439,10 +461,10 @@ def run_bsi_pt(args: argparse.Namespace, **kwargs) -> Dict:
         'rewards': rewards,
         'phi_beliefs': phi_beliefs,
         'win_records': win_records,
-        'kl_divergences': kl_divergences,
         'policy_preds': policy_preds,
-        'corresponding_phi': corresponding_phi
+        'corresponding_phi': corresponding_phi,
     }
+
 
 def setup_environment(args: argparse.Namespace, agent: BprAgent) -> GridWorld:
     env = GridWorld(
@@ -452,7 +474,7 @@ def setup_environment(args: argparse.Namespace, agent: BprAgent) -> GridWorld:
         new_phi_opponent=args.new_phi_opponent,
         new_phi_noise_opponent=args.new_phi_noise_opponent,
         q=args.q_distance,
-        p_pattern=args.p_pattern
+        p_pattern=args.p_pattern,
     )
 
     # setup initial policy
@@ -467,12 +489,13 @@ def setup_environment(args: argparse.Namespace, agent: BprAgent) -> GridWorld:
 
     return env
 
+
 def opponent_update_policy(
     args: argparse.Namespace,
     env: GridWorld,
     episode: int,
     reward: int,
-    ternimal_state: Tuple[Location, Location]
+    ternimal_state: Tuple[Location, Location],
 ) -> None:
     if args.bpr_opponent:
         env.opponent.update_belief(reward)
@@ -485,6 +508,7 @@ def opponent_update_policy(
         candidate.remove(env.opponent.policy)
         env.opponent.policy = random.choice(candidate)
 
+
 def setup_initial_policy(args: argparse.Namespace) -> None:
     if args.op_policy == -1:  # if user do not set it manually
         args.op_policy = random.randint(1, 5)
@@ -494,26 +518,3 @@ def setup_initial_policy(args: argparse.Namespace) -> None:
 
     if args.phi_opponent and args.phi <= 5:
         args.op_policy = args.phi  # the first five tau always use the same policy
-
-def append_kl_divergences(
-    kl_divergences: Dict[str, List],
-    real_policy: int,
-    belief: np.ndarray
-) -> None:
-    PI_NUM = 5
-
-    real_distribution = np.zeros(PI_NUM)
-    real_distribution[real_policy-1] = 1
-    real_distribution = normalize_distribution(real_distribution, 0.001)
-    kl_divergences['rel_entr(real, belief)'].append(
-        sum(rel_entr(real_distribution, belief))
-    )
-    kl_divergences['rel_entr(belief, real)'].append(
-        sum(rel_entr(belief, real_distribution))
-    )
-    kl_divergences['kl_div(real, belief)'].append(
-        sum(kl_div(real_distribution, belief))
-    )
-    kl_divergences['kl_div(belief, real)'].append(
-        sum(kl_div(belief, real_distribution))
-    )
