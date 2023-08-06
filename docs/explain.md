@@ -13,5 +13,5 @@ There are some symbols and terminologies used in the paper and this project, we 
 
 ## Terminology
 
-- Policy ($\pi$ or $\tau$): a mapping from states ($\sigma$) to actions
+- Policy ($\pi$ or $\tau$): a mapping from states to actions
 - Strategy ($\phi$): a mapping from a previous observation ($\sigma^{t-1}$) to an opponent’s current policy ($\tau^t$)
