@@ -1,7 +1,5 @@
 # Run Experiment Individually
 
-## Entry Points
-
 There are three entry points in this project.
 
 - `run.py`: Run a game in a given environment with an agent and an opponent type
@@ -14,7 +12,7 @@ On the other hand, `run.py` provides a finer granularity of only running one run
 
 Make sure the working directory is `src/` before running any of the scripts.
 
-### `run.py`
+## `run.py`
 
 !!! warning
     This refers to `src/run.py`, do not confuse with the `run.py` under each environment.
@@ -31,7 +29,7 @@ python run.py grid bsi-pt -n 10 -po -ph 6
 
 To see the full usage, run `python run.py -h`.
 
-### `run_experiment.py`
+## `run_experiment.py`
 
 There are various ways to run this script, for example
 
@@ -47,9 +45,9 @@ python run_experiment.py grid -r 5 -n 20 -po -ph 1 -a bpr+ deep-bpr+
 
 After the run, the results will be generated and stored as pickle files in `data/`
 
-To see the full usage, run `python run_experiment.py -h`.
+To see the full usage, run `python run_experiment.py -h`. Also, check [`scripts/run_experiments.sh`](https://github.com/jerry871002/bayesian-strategy-inference/blob/master/scripts/run_experiments.sh) and [`scripts/run_phi_experiments.sh`](https://github.com/jerry871002/bayesian-strategy-inference/blob/master/scripts/run_phi_experiments.sh) for more examples.
 
-### `run_exp_and_plot.py`
+## `run_exp_and_plot.py`
 
 !!! note
     Check [this page](experiment_definition.md) to see the definition of each experiment.

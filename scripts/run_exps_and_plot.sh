@@ -20,7 +20,8 @@ fi
 num_runs=${1:-1000}
 num_episodes=${2:-50}
 
-cd src/
+top_dir=$(git rev-parse --show-toplevel)
+cd "$top_dir/src/"
 
 mkdir -p logs/
 

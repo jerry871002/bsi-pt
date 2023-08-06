@@ -29,7 +29,8 @@ else
     mode_flag=""
 fi
 
-cd src/
+top_dir=$(git rev-parse --show-toplevel)
+cd "$top_dir/src/"
 
 mkdir -p logs/$scenario
 mkdir -p data/
