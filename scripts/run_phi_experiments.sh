@@ -34,7 +34,7 @@ cd src/
 mkdir -p logs/$scenario
 mkdir -p data/
 
-for i in {1..8}
+for i in {1..11}
 do
    python run_experiment.py $scenario -r $num_runs -n $num_episodes -po -ph $i $mode_flag > logs/$scenario/phi_$i.log &
 done

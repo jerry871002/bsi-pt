@@ -6,25 +6,26 @@ In the experiments, we compare our BSI-PT framework with previous BPR variants i
 
 ## Getting Started
 
-To reproduce the results in the paper, use the `scripts/run_exps_and_plot.sh` script. There are two ways to run the script.
+To reproduce the results in the paper, use the `scripts/run_exps_and_plot.sh` script. There are two methods for setting up the environment to run the script.
 
-### Run locally
+### Virtual Environment
 
-Make sure you have Python 3.8+ installed, then install the dependencies in `requirements.txt` using `pip`.
+Make sure you have Python 3.8+ installed, then set up a virtual environment using `venv` and activate it.
+
+```
+python -m venv venv
+source venv/bin/activate
+```
+
+Then install the dependencies in `requirements.txt` using `pip`.
 
 ```
 pip install -r requirements.txt
 ```
 
-Then run the following command:
+### Docker
 
-```
-scripts/run_exps_and_plot.sh [NUM_RUNS] [NUM_EPISODES]
-```
-
-### Run in Docker
-
-Build the image before the first run or after you make a change to the code.
+First, build the image. Make sure you are in the root directory of this repository.
 
 ```
 docker build -t bsi-pt .
@@ -36,7 +37,11 @@ Run a container using the image and mount the `src/` directory to see the result
 docker run -it -v $(pwd)/src:/app/src bsi-pt
 ```
 
-You will enter an interactive shell inside the container, run the experiments using the following command:
+You will enter an interactive shell inside the container.
+
+### Run the Experiments
+
+Run the experiments using the following command:
 
 ```
 scripts/run_exps_and_plot.sh [NUM_RUNS] [NUM_EPISODES]
@@ -48,7 +53,7 @@ The value of `[NUM_RUNS]` is quite large in the paper (200,000 runs) since we wa
 
 The raw data will be stored in `src/data/` in `.pkl` format. The figures will be generated from those data and stored in `src/fig/`, then the data points in the figures will be stored in CSV format in `src/csv/`.
 
-If you want to run the experiments individually or inspect each algorithm in detail, see [Run Individually](detail.md).
+If you want to run the experiments individually or inspect each algorithm in detail, see [Run Individual Experiment](detail.md).
 
 ## Extras
 
