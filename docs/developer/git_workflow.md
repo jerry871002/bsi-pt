@@ -9,7 +9,7 @@ The `master` branch is protected and commits can only be added via a reviewed PR
 !!! note
     See [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) for more details
 
-Use all-lower-cased messages with a prefix. The prefix can be one of the following
+Use all-lower-cased messages with a prefix. The prefix can be one of the following.
 
 - `fix`: bug fix
 - `feat`: new feature
@@ -46,3 +46,7 @@ Suppose your teammate pushed a branch named `fix-grid-env` and you want to conti
 ```bash
 git switch fix-grid-env
 ```
+
+## Solving bad situations
+
+[Dangit, Git!?!](https://dangitgit.com/en) is a great resource for solving bad situations in Git.
