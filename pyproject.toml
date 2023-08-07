@@ -18,3 +18,16 @@ line-length = 100
 [tool.ruff.per-file-ignores]
 # Ignore "Multiple statements on one line" for `get_action`
 "**/env.py" = ["E701"]
+
+[tool.mypy]
+warn_unused_configs = true
+warn_unused_ignores = true
+files = ["src/"]
+exclude = ["plot\\.py"]
+
+[[tool.mypy.overrides]]
+module = [
+    "matplotlib",
+    "matplotlib.pyplot"
+]
+ignore_missing_imports = true
