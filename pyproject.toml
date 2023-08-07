@@ -20,14 +20,11 @@ line-length = 100
 "**/env.py" = ["E701"]
 
 [tool.mypy]
+ignore_missing_imports = true
 warn_unused_configs = true
 warn_unused_ignores = true
 files = ["src/"]
-exclude = ["plot\\.py"]
 
 [[tool.mypy.overrides]]
-module = [
-    "matplotlib",
-    "matplotlib.pyplot"
-]
-ignore_missing_imports = true
+module = "plot"
+ignore_errors = true
