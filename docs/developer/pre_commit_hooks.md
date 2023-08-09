@@ -1,4 +1,4 @@
-# Pre-commit hook
+# Pre-commit hooks
 
 !!! note
     See [Git Hooks](https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks) and [pre-commit](https://pre-commit.com/) for more details.
@@ -37,4 +37,4 @@ pre-commit run --all-files
 - `end-of-file-fixer`: Makes sure files end in a newline and only a newline.
 - `requirements-txt-fixer`: Sorts entries in requirements.txt and constraints.txt and removes incorrect entry for `pkg-resources==0.0.0`.
 - `black`: Python code formatter. A tool to enforce a consistent coding style throughout a codebase.
-- `ruff`: Python linter. A tool that examines the source code for potential issues, violations of coding standards, and possible errors. 
+- `ruff`: Python linter. A tool that examines the source code for potential issues, violations of coding standards, and possible errors.
