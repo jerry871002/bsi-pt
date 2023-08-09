@@ -286,7 +286,7 @@ class BsiBaseAgent(BprAgent):
         # self.op_strategy_model[1] -> probabilities of 4 tau for phi 2
         # self.op_strategy_model[2] -> probabilities of 4 tau for phi 3
         # ... etc
-        final_state, final_action, final_reward = sigma[:-2], sigma[-2], sigma[-1]
+        final_state, final_action, final_reward = sigma
 
         # phi 6
         # if (3478 hit/walk) or (1256 out/strike_out) or (78 walk)
@@ -344,7 +344,7 @@ class BsiBaseAgent(BprAgent):
         if len(self.sigma_queue) <= 1:
             return
 
-        sigma_pre, sigma = self.sigma_queue[-2:]
+        sigma_pre = self.sigma_queue[-2]
 
         self.update_op_strategy_model(sigma_pre)
 

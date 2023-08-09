@@ -473,7 +473,7 @@ def run_bsi(args: argparse.Namespace, **kwargs) -> Dict:
             else:
                 policy_preds.append(False)
 
-        agent.add_terminal_state_queue(state_ + list(actions[1]) + [reward])
+        agent.add_terminal_state_queue((state_, actions[1], reward))
         agent.update_phi()
         agent.infer_tau()
         agent.update_policy()
@@ -656,7 +656,7 @@ def run_bsi_pt(args: argparse.Namespace, **kwargs) -> Dict:
             elif env.steps == 6:
                 policy_preds.append(step_5_policy_preds[i])
 
-        agent.add_terminal_state_queue(state_ + list(actions[1]) + [reward])
+        agent.add_terminal_state_queue((state_, actions[1], reward))
         agent.update_phi()
         agent.infer_tau()
         agent.update_policy()
