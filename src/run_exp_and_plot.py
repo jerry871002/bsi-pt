@@ -21,7 +21,7 @@ from typing import Tuple
 import pandas as pd
 
 from plot import (plot_cumulative_rewards, plot_episodic_rewards,
-                  plot_kl_divergences, plot_phi_belief_wrt_corr_phi_q,
+                  plot_phi_belief_wrt_corr_phi_q,
                   plot_phi_belief_wrt_corr_phi_p, plot_phi_beliefs,
                   plot_policy_pred_acc, plot_specific_phi_beliefs,
                   plot_win_rates)

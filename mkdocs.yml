@@ -1,6 +1,22 @@
 site_name: BSI-PT Documentation
 repo_url: https://github.com/jerry871002/bayesian-strategy-inference
 
+nav:
+  - Home: index.md
+  - 'Run Individual Experiment': detail.md
+  - 'Experiment Definition': experiment_definition.md
+  - Environments:
+    - 'Extended batter vs. pitcher game (EBvPG)': environments/baseball_game.md
+    - 'Grid World': environments/grid_world.md
+    - 'Navigation Game': environments/navigation_game.md
+    - 'Soccer Game': environments/soccer_game.md
+  - 'Symbols and Terminologies': explain.md
+  - Developer:
+    - 'Getting Started': developer/index.md
+    - 'Git Workflow': developer/git_workflow.md
+    - 'Pre-commit Hooks': developer/pre_commit_hooks.md
+    - 'Documentation Site': developer/documentation_site.md
+
 theme:
   name: material
   icon:
@@ -22,11 +38,14 @@ theme:
         name: Switch to light mode
   features:
     - content.code.copy
+    - navigation.expand
 
 markdown_extensions:
   - abbr
   - admonition
   - footnotes
+  - pymdownx.highlight
+  - pymdownx.superfences
 
 extra_javascript:
   - javascripts/katex.js
