@@ -1,0 +1,4 @@
+-r requirements.txt
+
+mkdocs-material==9.1.21
+pre-commit==3.3.3
