@@ -895,8 +895,8 @@ def setup_environment(args: argparse.Namespace, agent: BprAgent) -> BaseballGame
         env.opponent.phi = PhiOpponent.Phi(args.phi)
     # setup performance model
     performance_model = env.generate_performance_model()
-    env.opponent.PERFORMANCE_MODEL = performance_model
-    agent.PERFORMANCE_MODEL = performance_model
+    env.opponent.performance_model = performance_model
+    agent.performance_model = performance_model
 
     return env
 

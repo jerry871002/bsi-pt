@@ -74,7 +74,7 @@ class BprPlusAgent(BprAgent):
     def update_belief(self, utility: int):
         # posterior (belief) = prior * likelihood (performance model)
         likelihood = np.reciprocal(
-            (np.abs((self.PERFORMANCE_MODEL[:, self.policy.value - 1]) - utility) + 1).astype(float)
+            (np.abs((self.performance_model[:, self.policy.value - 1]) - utility) + 1).astype(float)
         )
         likelihood /= np.sum(likelihood)
         belief_unnormalized = likelihood * self.belief / (np.sum(likelihood * self.belief) + 1e-6)
@@ -82,7 +82,7 @@ class BprPlusAgent(BprAgent):
 
     def update_policy(self):
         # update policy based on belief and performance model
-        belief_mul_performance = self.belief @ self.PERFORMANCE_MODEL
+        belief_mul_performance = self.belief @ self.performance_model
         candidates = (
             np.argwhere(belief_mul_performance == np.amax(belief_mul_performance))
             .flatten()
@@ -132,7 +132,7 @@ class DeepBprPlusAgent(BprAgent):
     def update_belief(self, utility: int):
         # posterior (belief) = prior * likelihood (performance model)
         likelihood = np.reciprocal(
-            (np.abs((self.PERFORMANCE_MODEL[:, self.policy.value - 1]) - utility) + 1).astype(float)
+            (np.abs((self.performance_model[:, self.policy.value - 1]) - utility) + 1).astype(float)
         )
         likelihood /= np.sum(likelihood)
         belief_unnormalized = (
@@ -144,7 +144,7 @@ class DeepBprPlusAgent(BprAgent):
         self.belief = normalize_distribution(belief_unnormalized, 0.001)
 
     def update_policy(self):
-        belief_mul_performance = self.belief @ self.PERFORMANCE_MODEL
+        belief_mul_performance = self.belief @ self.performance_model
         candidates = (
             np.argwhere(belief_mul_performance == np.amax(belief_mul_performance))
             .flatten()
@@ -196,12 +196,12 @@ class BprOkrAgent(BprAgent):
         # the following method will give higher probability to the one
         # that is closer to the utility
         # e.g.
-        # PERFORMANCE_MODEL(pi2) = [-108, 42, -108, -110], utility = 40
-        # abs(PERFORMANCE_MODEL(pi2) - utility) = [148, 2, 148, 150]
+        # performance_model(pi2) = [-108, 42, -108, -110], utility = 40
+        # abs(performance_model(pi2) - utility) = [148, 2, 148, 150]
         # reciprocal([148, 2, 148, 150]) = [0.0068, 0.5, 0.0068, 0.0067]
         # normalize([0.0068, 0.5, 0.0068, 0.0067]) = [0.013, 0.961, 0.013, 0.01288]
         likelihood = np.reciprocal(
-            (np.abs((self.PERFORMANCE_MODEL[:, self.policy.value - 1]) - utility) + 1).astype(float)
+            (np.abs((self.performance_model[:, self.policy.value - 1]) - utility) + 1).astype(float)
         )
         likelihood /= np.sum(likelihood)
         belief_unnormalized = likelihood * self.belief / (np.sum(likelihood * self.belief) + 1e-6)
@@ -226,7 +226,7 @@ class BprOkrAgent(BprAgent):
         # `np.argmax` will always choose the one that has the smaller index
         # e.g. tau 2 over tau 3
         # now we fix it to randomly choose between those who have the same values
-        belief_mul_performance = self.intra_belief_model.intra_belief @ self.PERFORMANCE_MODEL
+        belief_mul_performance = self.intra_belief_model.intra_belief @ self.performance_model
         candidates = (
             np.argwhere(belief_mul_performance == np.amax(belief_mul_performance))
             .flatten()
@@ -389,7 +389,7 @@ class BsiAgent(BsiBaseAgent):
         # `np.argmax` will always choose the one that has the smaller index
         # e.g. tau 2 over tau 3
         # now we fix it to randomly choose between those who have the same values
-        belief_mul_performance = self.belief @ self.PERFORMANCE_MODEL
+        belief_mul_performance = self.belief @ self.performance_model
         candidates = (
             np.argwhere(belief_mul_performance == np.amax(belief_mul_performance))
             .flatten()
@@ -452,7 +452,7 @@ class BsiPtAgent(BsiBaseAgent):
         # `np.argmax` will always choose the one that has the smaller index
         # e.g. tau 2 over tau 3
         # now we fix it to randomly choose between those who have the same values
-        belief_mul_performance = self.intra_belief_model.intra_belief @ self.PERFORMANCE_MODEL
+        belief_mul_performance = self.intra_belief_model.intra_belief @ self.performance_model
         candidates = (
             np.argwhere(belief_mul_performance == np.amax(belief_mul_performance))
             .flatten()
