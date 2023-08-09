@@ -411,6 +411,9 @@ class BprOpponent(Opponent):
         self.n_policies = len(self.Policy)
         self._belief = np.ones(self.n_policies) / self.n_policies  # initial as uniform distribution
 
+        # should be set before the game starts
+        self.performance_model = None
+
     @property
     def belief(self):
         return self._belief
@@ -423,20 +426,20 @@ class BprOpponent(Opponent):
 
     def update_belief(self, utility: int) -> None:
         """
-        Update the belief according to the utility the agent gets. 
+        Update the belief according to the utility the agent gets.
         Notice that the utility is from the agent's perspective.
 
         Args:
             utility (int): The reward the agent gets in a episode.
         """
         # find the currently observed utility in the performance model
-        likelihood = (self.PERFORMANCE_MODEL[self.policy.value-1] == utility).astype(float)
+        likelihood = (self.performance_model[self.policy.value-1] == utility).astype(float)
         # posterior (belief) = prior * likelihood (performance model)
         new_belief_unnormalized = self.belief * likelihood / (np.sum(likelihood * self.belief) + 1e-6)
         self.belief = normalize_distribution(new_belief_unnormalized, 0.01)
 
     def update_policy(self) -> None:
-        belief_mul_performance = self.belief @ np.transpose(self.PERFORMANCE_MODEL)
+        belief_mul_performance = self.belief @ np.transpose(self.performance_model)
         candidates = np.argwhere(belief_mul_performance == np.amin(belief_mul_performance)).flatten().tolist()
         self.policy = list(Opponent.Policy)[random.choice(candidates)]
 
@@ -642,7 +645,9 @@ class NewPhiNoiseOpponent(Opponent):
             self.policy = self.Policy(self.strategy[terminal_state_combination.index(True)])
 
 
-def get_terminal_state_combination(ternimal_state: Tuple[Location, Location]) -> Tuple[bool]:
+def get_terminal_state_combination(
+    ternimal_state: Tuple[Location, Location]
+) -> Tuple[bool, bool, bool, bool, bool, bool, bool, bool, bool, bool]:
     agent_location, opponent_location = ternimal_state
 
     # goals

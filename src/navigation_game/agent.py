@@ -23,6 +23,9 @@ class BprAgent(Agent):
         self._policy = None
         self._belief = np.ones(self.n_policies) / self.n_policies  # initial as uniform distribution
 
+        # should be set before the game starts
+        self.performance_model = None
+
     @property
     def belief(self):
         return self._belief
@@ -126,12 +129,12 @@ class BprPlusAgent(BprAgent):
 
     def update_belief(self, utility: int):
         # posterior (belief) = prior * likelihood (performance model)
-        likelihood = ((self.PERFORMANCE_MODEL[:, self.policy.value-1]) == utility).astype(float)
+        likelihood = ((self.performance_model[:, self.policy.value-1]) == utility).astype(float)
         belief_unnormalized = likelihood * self.belief / (np.sum(likelihood * self.belief) + 1e-6)
         self.belief = normalize_distribution(belief_unnormalized, 0.01)
 
     def update_policy(self):
-        belief_mul_performance = self.belief @ self.PERFORMANCE_MODEL
+        belief_mul_performance = self.belief @ self.performance_model
         candidates = np.argwhere(belief_mul_performance == np.amax(belief_mul_performance)).flatten().tolist()
         self.policy = list(self.Policy)[random.choice(candidates)]
 
@@ -168,12 +171,12 @@ class DeepBprPlusAgent(BprAgent):
 
     def update_belief(self, utility: int):
         # posterior (belief) = prior * likelihood (performance model)
-        likelihood = ((self.PERFORMANCE_MODEL[:, self.policy.value-1]) == utility).astype(float)
+        likelihood = ((self.performance_model[:, self.policy.value-1]) == utility).astype(float)
         belief_unnormalized = self.tau_hat * likelihood * self.belief / (np.sum(self.tau_hat * likelihood * self.belief) + 1e-6)
         self.belief = normalize_distribution(belief_unnormalized, 0.01)
 
     def update_policy(self):
-        belief_mul_performance = self.belief @ self.PERFORMANCE_MODEL
+        belief_mul_performance = self.belief @ self.performance_model
         candidates = np.argwhere(belief_mul_performance == np.amax(belief_mul_performance)).flatten().tolist()
         self.policy = list(self.Policy)[random.choice(candidates)]
 
@@ -242,7 +245,7 @@ class TomAgent(BprAgent):
         self._confidence = new_confidence
 
     def compute_first_order_prediction(self):
-        belief_mul_performance = self.first_order_belief @ np.transpose(self.PERFORMANCE_MODEL)
+        belief_mul_performance = self.first_order_belief @ np.transpose(self.performance_model)
         candidates = np.argwhere(belief_mul_performance == np.amin(belief_mul_performance)).flatten().tolist()
         self.first_order_prediction = random.choice(candidates) + 1
 
@@ -254,7 +257,7 @@ class TomAgent(BprAgent):
                 self.integrated_belief[op_policy] = (1 - self.confidence) * self.belief[op_policy]
 
     def update_policy(self):
-        belief_mul_performance = self.integrated_belief @ self.PERFORMANCE_MODEL
+        belief_mul_performance = self.integrated_belief @ self.performance_model
         candidates = np.argwhere(belief_mul_performance == np.amax(belief_mul_performance)).flatten().tolist()
         self.policy = list(self.Policy)[random.choice(candidates)]
 
@@ -262,7 +265,7 @@ class TomAgent(BprAgent):
         reward = rewards[-1]  # for calculating first-order and zero-order belief
 
         # update first_order_belief
-        likelihood_pi = ((self.PERFORMANCE_MODEL[self.first_order_prediction-1]) == reward).astype(float)
+        likelihood_pi = ((self.performance_model[self.first_order_prediction-1]) == reward).astype(float)
         first_order_belief_unnormalized = likelihood_pi * self.first_order_belief / (np.sum(likelihood_pi * self.first_order_belief) + 1e-6)
 
         # only update first-order belief when not all beliefs are zeros
@@ -272,7 +275,7 @@ class TomAgent(BprAgent):
             )
 
         # update zero_order_belief
-        likelihood_tau = ((self.PERFORMANCE_MODEL[:, self.policy.value-1]) == reward).astype(float)
+        likelihood_tau = ((self.performance_model[:, self.policy.value-1]) == reward).astype(float)
         belief_unnormalized = likelihood_tau * self.belief / (np.sum(likelihood_tau * self.belief) + 1e-6)
         self.belief = normalize_distribution(belief_unnormalized, 0.01)
 
@@ -331,19 +334,19 @@ class BprOkrAgent(BprAgent):
         posterior (belief) = prior * likelihood (performance model)
 
         Args:
-            utility (int): The agent's total rewards in a episode. 
+            utility (int): The agent's total rewards in a episode.
         """
         # when the agent switches its policy within an epsode
         # we might obtain an utility thats not in the performance model
         # the following method will give higher probability to the one
         # that is closer to the utility
         # e.g.
-        # PERFORMANCE_MODEL(pi2) = [-108, 42, -108, -110], utility = 40
-        # abs(PERFORMANCE_MODEL(pi2) - utility) = [148, 2, 148, 150]
+        # performance_model(pi2) = [-108, 42, -108, -110], utility = 40
+        # abs(performance_model(pi2) - utility) = [148, 2, 148, 150]
         # reciprocal([148, 2, 148, 150]) = [0.0068, 0.5, 0.0068, 0.0067]
         # normalize([0.0068, 0.5, 0.0068, 0.0067]) = [0.013, 0.961, 0.013, 0.01288]
         likelihood = np.reciprocal(
-            (np.abs((self.PERFORMANCE_MODEL[:, self.policy.value-1]) - utility) + 1).astype(float)
+            (np.abs((self.performance_model[:, self.policy.value-1]) - utility) + 1).astype(float)
         )
         likelihood /= np.sum(likelihood)
         belief_unnormalized = likelihood * self.belief / (np.sum(likelihood * self.belief) + 1e-6)
@@ -369,7 +372,7 @@ class BprOkrAgent(BprAgent):
         # `np.argmax` will always choose the one that has the smaller index
         # e.g. tau 2 over tau 3
         # now we fix it to randomly choose between those who have the same values
-        belief_mul_performance = self.intra_belief_model.intra_belief @ self.PERFORMANCE_MODEL
+        belief_mul_performance = self.intra_belief_model.intra_belief @ self.performance_model
         candidates = np.argwhere(belief_mul_performance == np.amax(belief_mul_performance)).flatten().tolist()
         self.policy = list(self.Policy)[random.choice(candidates)]
 
@@ -523,10 +526,10 @@ class BsiBaseAgent(BprAgent):
 
         self.update_op_strategy_model(sigma_pre)
 
-        observation_model = []
+        observation_model_unnormalized = []
         for observation in self.observation_model[self.policy.value-1]:
-            observation_model.append(np.array_equal(observation, np.array(sigma).reshape(2, 2)))
-        observation_model = normalize_distribution(observation_model, 0.01)
+            observation_model_unnormalized.append(np.array_equal(observation, np.array(sigma).reshape(2, 2)))
+        observation_model = normalize_distribution(observation_model_unnormalized, 0.01)
 
         phi_belief_unnormalized = observation_model @ self.op_strategy_model.transpose() * self.phi_belief
         self.phi_belief = normalize_distribution(phi_belief_unnormalized, 0.0001)
@@ -563,7 +566,7 @@ class BsiAgent(BsiBaseAgent):
         # `np.argmax` will always choose the one that has the smaller index
         # e.g. tau 2 over tau 3
         # now we fix it to randomly choose between those who have the same values
-        belief_mul_performance = self.belief @ self.PERFORMANCE_MODEL
+        belief_mul_performance = self.belief @ self.performance_model
         candidates = np.argwhere(belief_mul_performance == np.amax(belief_mul_performance)).flatten().tolist()
         self.policy = list(self.Policy)[random.choice(candidates)]
 
@@ -617,7 +620,7 @@ class BsiPtAgent(BsiBaseAgent):
         # `np.argmax` will always choose the one that has the smaller index
         # e.g. tau 2 over tau 3
         # now we fix it to randomly choose between those who have the same values
-        belief_mul_performance = self.intra_belief_model.intra_belief @ self.PERFORMANCE_MODEL
+        belief_mul_performance = self.intra_belief_model.intra_belief @ self.performance_model
         candidates = np.argwhere(belief_mul_performance == np.amax(belief_mul_performance)).flatten().tolist()
         self.policy = list(self.Policy)[random.choice(candidates)]
 

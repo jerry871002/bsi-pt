@@ -231,7 +231,7 @@ def run_bpr_okr(args: argparse.Namespace, **kwargs) -> Dict:
             # update performance model
             start_state = state_ if not done else None
             performance_model = env.generate_performance_model(start_state=start_state)
-            agent.PERFORMANCE_MODEL = performance_model
+            agent.performance_model = performance_model
 
             agent.add_experience_queue(
                 state[2:], actions[1]
@@ -484,8 +484,8 @@ def setup_environment(args: argparse.Namespace, agent: BprAgent) -> GridWorld:
 
     # setup performance model
     performance_model = env.generate_performance_model()
-    env.opponent.PERFORMANCE_MODEL = performance_model
-    agent.PERFORMANCE_MODEL = performance_model
+    env.opponent.performance_model = performance_model
+    agent.performance_model = performance_model
 
     return env
 
