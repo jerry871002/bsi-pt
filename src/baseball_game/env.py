@@ -92,179 +92,19 @@ class BaseballGame:
         self.steps = 0
         return self.state
 
-    def step(self, agent_action: Move, stochastic=True) -> Tuple[bool, int, State, Tuple[Move, Move], EpisodeResult]:
+    def step(self, agent_action: Move) -> Tuple[bool, int, State, Tuple[Move, Move], EpisodeResult]:
         # return done, reward, next_state, [agent_action, opponent_action]
         if not isinstance(agent_action, Move):
             raise ValueError('Action should be represented by the `Move` class')
         self.steps += 1
         opponent_action = self.opponent.get_action(self.state)
-        if stochastic:
-            # see where the ball actually goes base on a probability distribution
-            opponent_real_action = self.generate_real_action(opponent_action)
-            # print(f'Agent action a={agent_action.value}')
-            # print(f'env.py 109 op action = {opponent_action}')
-            # print(f'Opponent action o={opponent_action.value}')
-            # print(f'Opponent actual action o\'={opponent_real_action[0].value}')
-            swing_prob, hit_prob, score_prob = self.generate_probs(agent_action, opponent_real_action)
-            # print(f'Agent swing(u1), hit(v1), score(w1) probabilities = {round(swing_prob, 2)}, {round(hit_prob, 2)}, {round(score_prob, 2)}')
-        else:
-            opponent_real_action = opponent_action
-            if agent_action == opponent_real_action:
-                # agent's swing location matches opponent's pitch location
-                swing_prob = 1
-                hit_prob = 1
-                score_prob = 1
-            else:
-                swing_prob = 0
-                hit_prob = 0
-                score_prob = 0
+        swing_prob, hit_prob, score_prob = self.generate_probs(agent_action, opponent_action)
 
         done, reward, state_, result = self.generate_result(
-            swing_prob, hit_prob, score_prob, self.state.copy(), opponent_real_action
+            swing_prob, hit_prob, score_prob, self.state.copy(), opponent_action
         )
-        actions = (agent_action, opponent_real_action)
+        actions = (agent_action, opponent_action)
         return done, reward, state_, actions, result
-
-    def generate_real_action(self, action) -> Move:
-        # given the opponent's choice of action, return what the opponent actually does
-        # TODO: should match the probability defined in Agent.Intra_belief_model.opponent_model
-        ball_control_k1 = 1
-        ball_control_k2 = (1 - ball_control_k1) / 14
-        options = [
-            Move.STRIKE_1,
-            Move.STRIKE_2,
-            Move.STRIKE_3,
-            Move.STRIKE_4,
-            Move.BALL_5,
-            Move.BALL_6,
-            Move.BALL_7,
-            Move.BALL_8,
-        ]
-        if action == Move.STRIKE_1:
-            real_action = np.random.choice(
-                options,
-                1,
-                p=[
-                    ball_control_k1,
-                    3 * ball_control_k2,
-                    3 * ball_control_k2,
-                    2 * ball_control_k2,
-                    3 * ball_control_k2,
-                    ball_control_k2,
-                    ball_control_k2,
-                    ball_control_k2,
-                ],
-            )
-        elif action == Move.STRIKE_2:
-            real_action = np.random.choice(
-                options,
-                1,
-                p=[
-                    3 * ball_control_k2,
-                    ball_control_k1,
-                    2 * ball_control_k2,
-                    3 * ball_control_k2,
-                    ball_control_k2,
-                    3 * ball_control_k2,
-                    ball_control_k2,
-                    ball_control_k2,
-                ],
-            )
-        elif action == Move.STRIKE_3:
-            real_action = np.random.choice(
-                options,
-                1,
-                p=[
-                    3 * ball_control_k2,
-                    2 * ball_control_k2,
-                    ball_control_k1,
-                    3 * ball_control_k2,
-                    ball_control_k2,
-                    ball_control_k2,
-                    3 * ball_control_k2,
-                    ball_control_k2,
-                ],
-            )
-        elif action == Move.STRIKE_4:
-            real_action = np.random.choice(
-                options,
-                1,
-                p=[
-                    2 * ball_control_k2,
-                    3 * ball_control_k2,
-                    3 * ball_control_k2,
-                    ball_control_k1,
-                    ball_control_k2,
-                    ball_control_k2,
-                    ball_control_k2,
-                    3 * ball_control_k2,
-                ],
-            )
-
-        ball_control_k2 = (1 - ball_control_k1) / 16
-
-        if action == Move.BALL_5:
-            real_action = np.random.choice(
-                options,
-                1,
-                p=[
-                    3 * ball_control_k2,
-                    2 * ball_control_k2,
-                    2 * ball_control_k2,
-                    2 * ball_control_k2,
-                    ball_control_k1,
-                    3 * ball_control_k2,
-                    3 * ball_control_k2,
-                    ball_control_k2,
-                ],
-            )
-        elif action == Move.BALL_6:
-            real_action = np.random.choice(
-                options,
-                1,
-                p=[
-                    2 * ball_control_k2,
-                    3 * ball_control_k2,
-                    2 * ball_control_k2,
-                    2 * ball_control_k2,
-                    3 * ball_control_k2,
-                    ball_control_k1,
-                    ball_control_k2,
-                    3 * ball_control_k2,
-                ],
-            )
-        elif action == Move.BALL_7:
-            real_action = np.random.choice(
-                options,
-                1,
-                p=[
-                    2 * ball_control_k2,
-                    2 * ball_control_k2,
-                    3 * ball_control_k2,
-                    2 * ball_control_k2,
-                    3 * ball_control_k2,
-                    ball_control_k2,
-                    ball_control_k1,
-                    3 * ball_control_k2,
-                ],
-            )
-        elif action == Move.BALL_8:
-            real_action = np.random.choice(
-                options,
-                1,
-                p=[
-                    2 * ball_control_k2,
-                    2 * ball_control_k2,
-                    2 * ball_control_k2,
-                    3 * ball_control_k2,
-                    ball_control_k2,
-                    3 * ball_control_k2,
-                    3 * ball_control_k2,
-                    ball_control_k1,
-                ],
-            )
-
-        return real_action
 
     def generate_probs(self, agent_action, op_action) -> Tuple[float, float, float]:
         # see Appendix A in the paper
