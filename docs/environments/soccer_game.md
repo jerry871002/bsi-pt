@@ -1,6 +1,6 @@
 # Soccer Game
 
-![Soccer Game](https://hackmd.io/_uploads/By-3lQ5qh.png)
+![Soccer Game](https://hackmd.io/_uploads/ryloeQ9cn.png)
 
 In Soccer Game, the agent with $\pi_i$ aims to approach the opponent with $\tau_i$ to steal the ball and then brings the ball to the corresponding goal on the right side.
 
@@ -31,6 +31,7 @@ The `env.show()` will print out the following result
 ## Move the agent
 
 There are five moves to choose from
+
 - `Move.UP`
 - `Move.RIGHT`
 - `Move.DOWN`
@@ -72,6 +73,7 @@ For instance, `env.step()` could return the following values
 ## Change the opponent policy
 
 There are five policies to choose from
+
 - `Opponent.Policy.ONE`
 - `Opponent.Policy.TWO`
 - `Opponent.Policy.THREE`
@@ -92,9 +94,10 @@ Opponent policy is Policy.ONE
 
 ## Change the agent policy
 
-To set a policy, your agent has to be a `BprAgent`, see `BprAgent` in [`navigation_game/agent.py`](https://github.com/jerry871002/bayesian-strategy-inference/blob/master/src/soccer_game/agent.py)
+To set a policy, your agent has to be a `BprAgent`, see `BprAgent` in [`soccer_game/agent.py`](https://github.com/jerry871002/bayesian-strategy-inference/blob/master/src/soccer_game/agent.py)
 
 There are five policies to choose from
+
 - `BprAgent.Policy.ONE`
 - `BprAgent.Policy.TWO`
 - `BprAgent.Policy.THREE`

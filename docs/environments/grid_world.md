@@ -30,6 +30,7 @@ The `env.show()` will print out the following result
 ## Move the agent
 
 There are five moves to choose from
+
 - `Move.UP`
 - `Move.RIGHT`
 - `Move.DOWN`
@@ -71,6 +72,7 @@ For instance, `env.step()` could return the following values
 ## Change the opponent policy
 
 There are five policies to choose from
+
 - `Opponent.Policy.ONE`
 - `Opponent.Policy.TWO`
 - `Opponent.Policy.THREE`
@@ -94,6 +96,7 @@ Opponent policy is Policy.ONE
 To set a policy, your agent has to be a `BprAgent`, see `BprAgent` in [`grid_world/agent.py`](https://github.com/jerry871002/bayesian-strategy-inference/blob/master/src/grid_world/agent.py)
 
 There are five policies to choose from
+
 - `BprAgent.Policy.ONE`
 - `BprAgent.Policy.TWO`
 - `BprAgent.Policy.THREE`

@@ -1,6 +1,6 @@
 # Navigation Game
 
-![Navigation Game](https://hackmd.io/_uploads/ryloeQ9cn.png)
+![Navigation Game](https://hackmd.io/_uploads/By-3lQ5qh.png)
 
 In Navigation Game, the agent with policy $\pi_i$ aims to move to the same goal that the opponent with $\tau_i$ plans to reach. Note that any action that causes the agent to pass through the obstacles (the grey grids) or to move out of the field is ignored.
 
@@ -35,6 +35,7 @@ The `env.show()` will print out the following result
 ## Move the agent
 
 There are five moves to choose from
+
 - `Move.UP`
 - `Move.RIGHT`
 - `Move.DOWN`
@@ -76,6 +77,7 @@ For instance, `env.step()` could return the following values
 ## Change the opponent policy
 
 There are five policies to choose from
+
 - `Opponent.Policy.ONE`
 - `Opponent.Policy.TWO`
 - `Opponent.Policy.THREE`
@@ -99,6 +101,7 @@ Opponent policy is Policy.ONE
 To set a policy, your agent has to be a `BprAgent`, see `BprAgent` in [`navigation_game/agent.py`](https://github.com/jerry871002/bayesian-strategy-inference/blob/master/src/navigation_game/agent.py)
 
 There are five policies to choose from
+
 - `BprAgent.Policy.ONE`
 - `BprAgent.Policy.TWO`
 - `BprAgent.Policy.THREE`
