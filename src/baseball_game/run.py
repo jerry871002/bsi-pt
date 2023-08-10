@@ -1,16 +1,11 @@
 import argparse
 import random
-from typing import Dict, List, Tuple
+from typing import Dict
 
 import numpy as np
-from scipy.special import kl_div, rel_entr
 
-from utils import normalize_distribution
-
-from .agent import (BprAgent, BprOkrAgent, BprPlusAgent, BsiAgent, 
-                    BsiPtAgent, DeepBprPlusAgent)
-from .env import (BaseballGame, Opponent, PhiOpponent,
-                  NewPhiNoiseOpponent)
+from .agent import BprAgent, BprOkrAgent, BprPlusAgent, BsiAgent, BsiPtAgent, DeepBprPlusAgent
+from .env import BaseballGame, Opponent, PhiOpponent
 
 
 def run_bpr_plus(args: argparse.Namespace, **kwargs) -> Dict:
@@ -42,7 +37,7 @@ def run_bpr_plus(args: argparse.Namespace, **kwargs) -> Dict:
             if args.print_action:
                 print(f'(agent action, opponent action) is {actions}')
 
-            if done: # the episode has finished
+            if done:  # the episode has finished
                 if reward > 0:
                     win_records.append(True)
                 else:
@@ -50,15 +45,17 @@ def run_bpr_plus(args: argparse.Namespace, **kwargs) -> Dict:
 
                 rewards.append(total_reward)
                 break
-            
+
             # change to the next state
             env.state = state_
 
             # intra episode random switch opponent can switch policy wtihin an episode
-            if (not args.bpr_opponent
+            if (
+                not args.bpr_opponent
                 and not args.phi_opponent
                 and not args.new_phi_noise_opponent
-                and args.episode_reset < 0 ):
+                and args.episode_reset < 0
+            ):
                 opponent_update_policy(
                     args=args,
                     env=env,
@@ -75,13 +72,15 @@ def run_bpr_plus(args: argparse.Namespace, **kwargs) -> Dict:
                 policy_preds.append(True)
             else:
                 policy_preds.append(False)
-        else: # after the second episode, record whether the policy with highest belief is the opponent's actual policy
+        # after the second episode, record whether the policy with highest belief
+        # is the opponent's actual policy
+        else:
             if np.argmax(agent.belief) + 1 == env.opponent.policy.value:
                 policy_preds.append(True)
             else:
                 policy_preds.append(False)
 
-        agent.update_belief(total_reward) # update belief with episodic return
+        agent.update_belief(total_reward)  # update belief with episodic return
         agent.update_policy()
 
         # update opponent policy according to different op type
@@ -133,7 +132,7 @@ def run_deep_bpr_plus(args: argparse.Namespace, **kwargs) -> Dict:
             if args.print_action:
                 print(f'(agent action, opponent action) is {actions}')
 
-            if done: # the episode has finished
+            if done:  # the episode has finished
                 if reward > 0:
                     win_records.append(True)
                 else:
@@ -143,15 +142,17 @@ def run_deep_bpr_plus(args: argparse.Namespace, **kwargs) -> Dict:
                 break
 
             # add the opponent's location and action to the experience queue
-            agent.add_experience_queue( env.state, actions[1] )  
+            agent.add_experience_queue(env.state, actions[1])
             # change to the next state
             env.state = state_
 
             # intra episode random switch opponent can switch policy wtihin an episode
-            if (not args.bpr_opponent
+            if (
+                not args.bpr_opponent
                 and not args.phi_opponent
                 and not args.new_phi_noise_opponent
-                and args.episode_reset < 0 ):
+                and args.episode_reset < 0
+            ):
                 opponent_update_policy(
                     args=args,
                     env=env,
@@ -251,9 +252,9 @@ def run_bpr_okr(args: argparse.Namespace, **kwargs) -> Dict:
                 print(f'(agent action, opponent action) is {actions}')
 
             # add the opponent's location and action to the experience queue
-            agent.add_experience_queue( env.state, actions[1] )
+            agent.add_experience_queue(env.state, actions[1])
             agent.update_intra_belief()
-            # choose the next policy with the integrated belief (combination of inter & intra belief)
+            # choose the next policy using integrated belief (combination of inter & intra belief)
             agent.update_policy(integrated_belief=True)
             # switch to the next state
             env.state = state_
@@ -396,19 +397,6 @@ def run_bsi(args: argparse.Namespace, **kwargs) -> Dict:
     policy_preds = []
     # indicates whether the agent can choose the right policy before the episode starts
     step_0_policy_preds = []
-    # record the prediction accuracy of each step as respective arrays
-    step_1_policy_preds = []
-    step_2_policy_preds = []
-    step_3_policy_preds = []
-    step_4_policy_preds = []
-    step_5_policy_preds = []
-    step_6_policy_preds = []
-    kl_divergences = {
-        'rel_entr(real, belief)': [],
-        'rel_entr(belief, real)': [],
-        'kl_div(real, belief)': [],
-        'kl_div(belief, real)': [],
-    }
     for i in range(args.num_episodes):
         # need at least two episodes to calculate the first phi belief
         # don't neet to update phi at the first two episodes
@@ -418,6 +406,7 @@ def run_bsi(args: argparse.Namespace, **kwargs) -> Dict:
         phi_beliefs.append(agent.phi_belief)
 
         # policy prediction accuracy of the first two episodes is not applicable
+        # FIXME: this condition doesn't mean the distribution is uniform
         if np.all(agent.belief == agent.belief[0]):  # agent's belief is still uniform
             if random.randint(1, agent.n_policies) == env.opponent.policy.value:
                 step_0_policy_preds.append(True)
@@ -441,7 +430,8 @@ def run_bsi(args: argparse.Namespace, **kwargs) -> Dict:
             if args.print_action:
                 print(f'(agent action, opponent action) is {actions}')
 
-            # add the state-action pair of the opponent to experience queue (action of opponent is the observable o')
+            # add the state-action pair of the opponent to experience queue
+            # (action of opponent is the observable o')
             agent.add_experience_queue(env.state, actions[1])
 
             if done:
@@ -483,8 +473,7 @@ def run_bsi(args: argparse.Namespace, **kwargs) -> Dict:
             else:
                 policy_preds.append(False)
 
-        append_kl_divergences(kl_divergences, real_policy=env.opponent.policy.value, belief=agent.belief)
-        agent.add_terminal_state_queue(state_ + list(actions[1]) + [reward])
+        agent.add_terminal_state_queue((state_, actions[1], reward))
         agent.update_phi()
         agent.infer_tau()
         agent.update_policy()
@@ -504,15 +493,8 @@ def run_bsi(args: argparse.Namespace, **kwargs) -> Dict:
         'rewards': rewards,
         'phi_beliefs': phi_beliefs,
         'win_records': win_records,
-        'kl_divergences': kl_divergences,
         'policy_preds': policy_preds,
         'step_0_policy_preds': step_0_policy_preds,
-        'step_1_policy_preds': step_1_policy_preds,
-        'step_2_policy_preds': step_2_policy_preds,
-        'step_3_policy_preds': step_3_policy_preds,
-        'step_4_policy_preds': step_4_policy_preds,
-        'step_5_policy_preds': step_5_policy_preds,
-        'step_6_policy_preds': step_6_policy_preds,
         'corresponding_phi': corresponding_phi,
         'hit_count': env.hit_count,
         'strike_out_count': env.strike_out_count,
@@ -543,12 +525,6 @@ def run_bsi_pt(args: argparse.Namespace, **kwargs) -> Dict:
     step_4_policy_preds = []
     step_5_policy_preds = []
     step_6_policy_preds = []
-    kl_divergences = {
-        'rel_entr(real, belief)': [],
-        'rel_entr(belief, real)': [],
-        'kl_div(real, belief)': [],
-        'kl_div(belief, real)': [],
-    }
     for i in range(args.num_episodes):
         # need at least two episodes to calculate the first phi belief
         # don't neet to update phi at the first two episodes
@@ -631,10 +607,12 @@ def run_bsi_pt(args: argparse.Namespace, **kwargs) -> Dict:
             env.state = state_
 
             # intra episode random switch opponent can switch policy within episodes
-            if (not args.bpr_opponent
+            if (
+                not args.bpr_opponent
                 and not args.phi_opponent
                 and not args.new_phi_noise_opponent
-                and args.episode_reset < 0 ):
+                and args.episode_reset < 0
+            ):
                 opponent_update_policy(
                     args=args,
                     env=env,
@@ -678,8 +656,7 @@ def run_bsi_pt(args: argparse.Namespace, **kwargs) -> Dict:
             elif env.steps == 6:
                 policy_preds.append(step_5_policy_preds[i])
 
-        append_kl_divergences(kl_divergences, real_policy=env.opponent.policy.value, belief=agent.intra_belief)
-        agent.add_terminal_state_queue(state_ + list(actions[1]) + [reward])
+        agent.add_terminal_state_queue((state_, actions[1], reward))
         agent.update_phi()
         agent.infer_tau()
         agent.update_policy()
@@ -697,7 +674,6 @@ def run_bsi_pt(args: argparse.Namespace, **kwargs) -> Dict:
         'rewards': rewards,
         'phi_beliefs': phi_beliefs,
         'win_records': win_records,
-        'kl_divergences': kl_divergences,
         'policy_preds': policy_preds,
         'step_0_policy_preds': step_0_policy_preds,
         'step_1_policy_preds': step_1_policy_preds,
@@ -725,7 +701,6 @@ def run_uniformA(args: argparse.Namespace, **kwargs) -> Dict:
     env = setup_environment(args, agent)
 
     rewards = []
-    phi_beliefs = []
     win_records = []
     policy_preds = []
     # indicates whether the agent can choose the right policy before the episode starts
@@ -737,14 +712,7 @@ def run_uniformA(args: argparse.Namespace, **kwargs) -> Dict:
     step_4_policy_preds = []
     step_5_policy_preds = []
     step_6_policy_preds = []
-    kl_divergences = {
-        'rel_entr(real, belief)': [],
-        'rel_entr(belief, real)': [],
-        'kl_div(real, belief)': [],
-        'kl_div(belief, real)': [],
-    }
     for i in range(args.num_episodes):
-
         # use uniform tau as inital intra belief at the beginning of each episode
         agent.infer_tau2()
         agent.update_policy()
@@ -825,10 +793,12 @@ def run_uniformA(args: argparse.Namespace, **kwargs) -> Dict:
             env.state = state_
 
             # intra episode random switch opponent can switch policy within episodes
-            if (not args.bpr_opponent
+            if (
+                not args.bpr_opponent
                 and not args.phi_opponent
                 and not args.new_phi_noise_opponent
-                and args.episode_reset < 0 ):
+                and args.episode_reset < 0
+            ):
                 opponent_update_policy(
                     args=args,
                     env=env,
@@ -872,7 +842,7 @@ def run_uniformA(args: argparse.Namespace, **kwargs) -> Dict:
             elif env.steps == 6:
                 policy_preds.append(step_5_policy_preds[i])
 
-        '''append_kl_divergences(kl_divergences, real_policy=env.opponent.policy.value, belief=agent.intra_belief)
+        '''
         agent.add_terminal_state_queue(state_+list(actions[1])+[reward])
         agent.update_phi()
         agent.infer_tau()
@@ -891,9 +861,7 @@ def run_uniformA(args: argparse.Namespace, **kwargs) -> Dict:
     corresponding_phi = None
     return {
         'rewards': rewards,
-        'phi_beliefs': phi_beliefs,
         'win_records': win_records,
-        'kl_divergences': kl_divergences,
         'policy_preds': policy_preds,
         'step_0_policy_preds': step_0_policy_preds,
         'step_1_policy_preds': step_1_policy_preds,
@@ -927,8 +895,8 @@ def setup_environment(args: argparse.Namespace, agent: BprAgent) -> BaseballGame
         env.opponent.phi = PhiOpponent.Phi(args.phi)
     # setup performance model
     performance_model = env.generate_performance_model()
-    env.opponent.PERFORMANCE_MODEL = performance_model
-    agent.PERFORMANCE_MODEL = performance_model
+    env.opponent.performance_model = performance_model
+    agent.performance_model = performance_model
 
     return env
 
@@ -946,14 +914,19 @@ def opponent_update_policy(
         env.opponent.update_policy()
         print(f'Opponent belief updated to {env.opponent.belief}')
     elif args.phi_opponent or args.new_phi_noise_opponent:
-        # given the final result (hit, out, BB) and the final action (o'), opponent can deternmine its next policy
+        # given the final result (hit, out, BB) and the final action (o')
+        # opponent can deternmine its next policy
         env.opponent.update_policy(final_action, final_result)
-    elif args.episode_reset > 0 and (episode + 1) % args.episode_reset == 0:  # random switch opponent
+    elif (
+        args.episode_reset > 0 and (episode + 1) % args.episode_reset == 0
+    ):  # random switch opponent
         candidate = list(Opponent.Policy)
         candidate.remove(env.opponent.policy)
         env.opponent.policy = random.choice(candidate)
     elif (
-        args.episode_reset < 0 and env.steps % (-args.episode_reset) == 0 and env.steps / (-args.episode_reset) == 1
+        args.episode_reset < 0
+        and env.steps % (-args.episode_reset) == 0
+        and env.steps / (-args.episode_reset) == 1
     ):  # intra episode random switch opponent: # intra episode random switch
         candidate = list(Opponent.Policy)
         candidate.remove(env.opponent.policy)
@@ -975,15 +948,3 @@ def setup_initial_policy(args: argparse.Namespace) -> None:
 
     if args.phi_opponent and args.phi <= 4:
         args.op_policy = args.phi  # the first four tau always use the same policy
-
-
-def append_kl_divergences(kl_divergences: Dict[str, List], real_policy: int, belief: np.ndarray) -> None:
-    PI_NUM = 4
-
-    real_distribution = np.zeros(PI_NUM)
-    real_distribution[real_policy - 1] = 1
-    real_distribution = normalize_distribution(real_distribution, 0.001)
-    kl_divergences['rel_entr(real, belief)'].append(sum(rel_entr(real_distribution, belief)))
-    kl_divergences['rel_entr(belief, real)'].append(sum(rel_entr(belief, real_distribution)))
-    kl_divergences['kl_div(real, belief)'].append(sum(kl_div(real_distribution, belief)))
-    kl_divergences['kl_div(belief, real)'].append(sum(kl_div(belief, real_distribution)))
