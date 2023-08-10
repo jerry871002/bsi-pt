@@ -21,6 +21,9 @@ class BprAgent(Agent):
         self._policy = None
         self._belief = np.ones(self.n_policies) / self.n_policies  # initial as uniform distribution
 
+        # TODO: should be set before the game starts
+        self.performance_model = None
+
     @property
     def belief(self):
         return self._belief
