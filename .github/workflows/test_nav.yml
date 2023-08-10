@@ -2,6 +2,9 @@ name: Test in navigation game environment
 
 on:
   push:
+    paths:
+      - 'src/**'
+      - 'tests/**'
   workflow_dispatch:
 
 jobs:
