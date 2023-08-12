@@ -319,15 +319,21 @@ class Opponent(Agent):
 
         raise ValueError(f'Opponent with policy {self.policy}')
 
-    def generate_action_from_tau(
-        self, tau: int, situation: int
-    ) -> Move:  # tau=1~4, situation=1~3: states are catogorized into 3 situations
-        action_control_constant_mu1 = (
-            0.6  # mu1: probability of the action that is most likely to happen
-        )
-        mu2 = (
-            1 - action_control_constant_mu1
-        ) / 16  # define the probability of other less likely actions
+    def generate_action_from_tau(self, tau: int, situation: int) -> Move:
+        """
+        Return the action given tau and situation.
+
+        Args:
+            tau (int): Opponent policy, can be 1, 2, 3, or 4.
+            situation (int): States are catogorized into 3 situations, can be 1, 2, or 3.
+
+        Returns:
+            Move: The action to take.
+        """
+        # mu1: probability of the action that is most likely to happen
+        action_control_constant_mu1 = 0.6
+        # define the probability of other less likely actions
+        mu2 = (1 - action_control_constant_mu1) / 16
         options = [
             Move.STRIKE_1,
             Move.STRIKE_2,
@@ -729,8 +735,8 @@ class NewPhiNoiseOpponent(Opponent):
         if not self.phi:
             raise RuntimeError('Phi is not specified.')
 
-        stochasticOp = random.random() < self.p_pattern
-        if stochasticOp:
+        stochastic = random.random() < self.p_pattern
+        if stochastic:
             self.policy = random.choice(list(self.Policy))
         else:
             # phi 1 to phi 4 always keep the same policy
@@ -877,202 +883,3 @@ class NewPhiNoiseOpponent(Opponent):
                     self.policy = self.Policy.ONE
                 else:
                     self.policy = random.choice(list(self.Policy))
-
-
-class OutOfLibraryPhiOpponent(Opponent):
-    class Phi(Enum):
-        ONE = 1
-        TWO = 2
-        THREE = 3
-        FOUR = 4
-        FIVE = 5
-        SIX = 6
-        SEVEN = 7
-        EIGHT = 8
-        NINE = 9
-        TEN = 10
-        ELEVEN = 11
-        TWELVE = 12
-
-    def __init__(self, x=None, y=None):
-        super().__init__(x, y)
-        self._policy: self.Policy = None
-        self._phi: self.Phi = None
-
-    @property
-    def phi(self):
-        return self._phi
-
-    @phi.setter
-    def phi(self, new_phi):
-        if not isinstance(new_phi, self.Phi):
-            raise ValueError(
-                f'Phi should be represented by `PhiOpponent.Phi` class, '
-                f'invalid value: {new_phi} ({type(new_phi)})'
-            )
-        self._phi = new_phi
-
-    def update_policy(self, final_action, final_result, N) -> None:
-        """
-        Update the policy of the opponent according to phi and sigma (terminal state).
-
-        Args:
-            ternimal_state (Tuple[Location, Location]): Opponent (x, y) + Agent (x, y)
-        """
-        if not self.phi:
-            raise RuntimeError('Phi is not specified.')
-
-        policy_list = []
-        if self.phi is self.Phi.ONE:
-            policy_list = [
-                self.Policy.ONE,
-                self.Policy.ONE,
-                self.Policy.ONE,
-                self.Policy.ONE,
-                self.Policy.ONE,
-                self.Policy.ONE,
-                self.Policy.ONE,
-                self.Policy.ONE,
-            ]
-        elif self.phi is self.Phi.TWO:
-            policy_list = [
-                self.Policy.TWO,
-                self.Policy.TWO,
-                self.Policy.TWO,
-                self.Policy.TWO,
-                self.Policy.TWO,
-                self.Policy.TWO,
-                self.Policy.TWO,
-                self.Policy.TWO,
-            ]
-        elif self.phi is self.Phi.THREE:
-            policy_list = [
-                self.Policy.THREE,
-                self.Policy.THREE,
-                self.Policy.THREE,
-                self.Policy.THREE,
-                self.Policy.THREE,
-                self.Policy.THREE,
-                self.Policy.THREE,
-                self.Policy.THREE,
-            ]
-        elif self.phi is self.Phi.FOUR:
-            policy_list = [
-                self.Policy.FOUR,
-                self.Policy.FOUR,
-                self.Policy.FOUR,
-                self.Policy.FOUR,
-                self.Policy.FOUR,
-                self.Policy.FOUR,
-                self.Policy.FOUR,
-                self.Policy.FOUR,
-            ]
-        elif self.phi is self.Phi.FIVE:
-            for i in range(8):
-                policy_list[i] = random.choice(list(self.Policy))
-        elif self.phi is self.Phi.SIX:
-            policy_list = [
-                self.Policy.THREE,
-                self.Policy.ONE,
-                self.Policy.ONE,
-                self.Policy.THREE,
-                self.Policy.ONE,
-                self.Policy.THREE,
-                self.Policy.THREE,
-                self.Policy.ONE,
-            ]
-        elif self.phi is self.Phi.SEVEN:
-            policy_list = [
-                self.Policy.TWO,
-                self.Policy.FOUR,
-                self.Policy.FOUR,
-                self.Policy.TWO,
-                self.Policy.FOUR,
-                self.Policy.TWO,
-                self.Policy.TWO,
-                self.Policy.FOUR,
-            ]
-        elif self.phi is self.Phi.EIGHT:
-            policy_list = [
-                self.Policy.THREE,
-                self.Policy.ONE,
-                self.Policy.THREE,
-                self.Policy.THREE,
-                self.Policy.ONE,
-                self.Policy.THREE,
-                self.Policy.THREE,
-                self.Policy.THREE,
-            ]
-        elif self.phi is self.Phi.NINE:
-            policy_list = [
-                self.Policy.FOUR,
-                self.Policy.FOUR,
-                self.Policy.THREE,
-                self.Policy.THREE,
-                self.Policy.THREE,
-                self.Policy.THREE,
-                self.Policy.FOUR,
-                self.Policy.FOUR,
-            ]
-
-        # TODO: random replace elements in policy_list according to N
-        index_to_replace = random.sample(range(8), N)
-        for i in range(N):
-            policy_list[index_to_replace[i]] = random.choice(list(self.Policy))
-        # TODO: check the new policy_list is has at least N different elements
-        # from policy_lists of all other phi opponent
-
-        # 1256 hit
-        if final_action in [
-            Move.STRIKE_1,
-            Move.STRIKE_2,
-            Move.BALL_5,
-            Move.BALL_6,
-        ] and final_result in [EpisodeResult.HIT]:
-            self.policy = policy_list[0]
-        # 3478 hit
-        elif final_action in [
-            Move.STRIKE_3,
-            Move.STRIKE_4,
-            Move.BALL_7,
-            Move.BALL_8,
-        ] and final_result in [EpisodeResult.HIT]:
-            self.policy = policy_list[1]
-        # 1256 out
-        elif final_action in [
-            Move.STRIKE_1,
-            Move.STRIKE_2,
-            Move.BALL_5,
-            Move.BALL_6,
-        ] and final_result in [EpisodeResult.OUT]:
-            self.policy = policy_list[2]
-        # 3478 out
-        elif final_action in [
-            Move.STRIKE_3,
-            Move.STRIKE_4,
-            Move.BALL_7,
-            Move.BALL_8,
-        ] and final_result in [EpisodeResult.OUT]:
-            self.policy = policy_list[3]
-        # 1256 strike out
-        elif final_action in [
-            Move.STRIKE_1,
-            Move.STRIKE_2,
-            Move.BALL_5,
-            Move.BALL_6,
-        ] and final_result in [EpisodeResult.STRIKE_OUT]:
-            self.policy = policy_list[4]
-        # 3478 strike out
-        elif final_action in [
-            Move.STRIKE_3,
-            Move.STRIKE_4,
-            Move.BALL_7,
-            Move.BALL_8,
-        ] and final_result in [EpisodeResult.STRIKE_OUT]:
-            self.policy = policy_list[5]
-        # 56 walk
-        elif final_action in [Move.BALL_5, Move.BALL_6] and final_result in [EpisodeResult.WALK]:
-            self.policy = policy_list[6]
-        # 78 walk
-        elif final_action in [Move.BALL_7, Move.BALL_8] and final_result in [EpisodeResult.WALK]:
-            self.policy = policy_list[7]

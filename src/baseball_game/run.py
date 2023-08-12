@@ -199,6 +199,10 @@ def run_deep_bpr_plus(args: argparse.Namespace, **kwargs) -> Dict:
     }
 
 
+def run_tom(args: argparse.Namespace, **kwargs) -> Dict:
+    raise NotImplementedError('Bayes-ToMoP agent is not implemented in baseball environment')
+
+
 def run_bpr_okr(args: argparse.Namespace, **kwargs) -> Dict:
     np.set_printoptions(formatter={'float': '{: 0.2f}'.format})
     setup_initial_policy(args)
