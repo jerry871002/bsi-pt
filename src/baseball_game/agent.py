@@ -423,12 +423,6 @@ class BsiPtAgent(BsiBaseAgent):
         super().infer_tau()
         self.intra_belief_model.intra_belief = self.belief
 
-    def infer_tau2(self):
-        """
-        Use the uniform tau as initial intra-episode belief.
-        """
-        self.intra_belief_model.intra_belief = self.belief
-
     def update_intra_belief(self) -> None:
         """
         Update intra-episode belief using the state-action pairs
