@@ -66,7 +66,7 @@ def run_bpr_plus(args: argparse.Namespace, **kwargs) -> Dict:
                 )
 
         # policy prediction accuracy of the first two episodes is not applicable
-        if isUniform(agent.belief):
+        if is_uniform(agent.belief):
             # use random number as the prediction accuracy
             if random.randint(1, agent.n_policies) == env.opponent.policy.value:
                 policy_preds.append(True)
@@ -163,7 +163,7 @@ def run_deep_bpr_plus(args: argparse.Namespace, **kwargs) -> Dict:
                 )
 
         # policy prediction accuracy of the first two episodes is not applicable
-        if isUniform(agent.belief):
+        if is_uniform(agent.belief):
             if random.randint(1, agent.n_policies) == env.opponent.policy.value:
                 policy_preds.append(True)
             else:
@@ -232,7 +232,7 @@ def run_bpr_okr(args: argparse.Namespace, **kwargs) -> Dict:
 
         # record the accyracy of step 0 (before the episode starts)
         # policy prediction accuracy of the first two episodes is not applicable
-        if isUniform(agent.intra_belief):  # agent's belief is still uniform
+        if is_uniform(agent.intra_belief):  # agent's belief is still uniform
             if random.randint(1, agent.n_policies) == env.opponent.policy.value:
                 step_0_policy_preds.append(True)
             else:
@@ -320,7 +320,7 @@ def run_bpr_okr(args: argparse.Namespace, **kwargs) -> Dict:
                 )
 
         # policy prediction accuracy of the first two episodes is not applicable
-        if isUniform(agent.intra_belief): # agent's belief is still uniform
+        if is_uniform(agent.intra_belief): # agent's belief is still uniform
             if random.randint(1, agent.n_policies) == env.opponent.policy.value:
                 policy_preds.append(True)
             else:
@@ -410,7 +410,7 @@ def run_bsi(args: argparse.Namespace, **kwargs) -> Dict:
         phi_beliefs.append(agent.phi_belief)
 
         # policy prediction accuracy of the first two episodes is not applicable
-        if isUniform(agent.belief): # agent's belief is still uniform
+        if is_uniform(agent.belief): # agent's belief is still uniform
             if random.randint(1, agent.n_policies) == env.opponent.policy.value:
                 step_0_policy_preds.append(True)
             else:
@@ -465,7 +465,7 @@ def run_bsi(args: argparse.Namespace, **kwargs) -> Dict:
                 )
 
         # policy prediction accuracy of the first two episodes is not applicable
-        if isUniform(agent.belief):
+        if is_uniform(agent.belief):
             if random.randint(1, agent.n_policies) == env.opponent.policy.value:
                 policy_preds.append(True)
             else:
@@ -537,7 +537,7 @@ def run_bsi_pt(args: argparse.Namespace, **kwargs) -> Dict:
         phi_beliefs.append(agent.phi_belief)
 
         # policy prediction accuracy of the first two episodes is not applicable
-        if isUniform(agent.intra_belief): # agent's belief is still uniform
+        if is_uniform(agent.intra_belief): # agent's belief is still uniform
             if random.randint(1, agent.n_policies) == env.opponent.policy.value:
                 step_0_policy_preds.append(True)
             else:
@@ -625,7 +625,7 @@ def run_bsi_pt(args: argparse.Namespace, **kwargs) -> Dict:
                     final_result=episode_result,
                 )
 
-        if isUniform(agent.intra_belief): # agent's belief is still uniform
+        if is_uniform(agent.intra_belief): # agent's belief is still uniform
             if random.randint(1, agent.n_policies) == env.opponent.policy.value:
                 policy_preds.append(True)
             else:
@@ -691,6 +691,7 @@ def run_bsi_pt(args: argparse.Namespace, **kwargs) -> Dict:
         'hit_out_count': env.hit_out_count,
         'walk_count': env.walk_count,
     }
+
 
 def setup_environment(args: argparse.Namespace, agent: BprAgent) -> BaseballGame:
     env = BaseballGame(
@@ -763,7 +764,9 @@ def setup_initial_policy(args: argparse.Namespace) -> None:
     if args.phi_opponent and args.phi <= 4:
         args.op_policy = args.phi  # the first four tau always use the same policy
 
-def isUniform(array) -> bool:
+
+# FIXME: shouldn't compare 2 calculated floating points
+def is_uniform(array) -> bool:
     if np.all(array == (1/len(array))):  # the array is uniform
         return True
     else:
