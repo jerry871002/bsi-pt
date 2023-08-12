@@ -53,11 +53,11 @@ def run_experiment(args: argparse.Namespace) -> None:
                 pool.join()
 
             for agent, rewards in result.items():
-                result[agent] = list(rewards)
+                result[agent] = list(rewards)  # type: ignore
 
-            result = dict(result)
+            result = dict(result)  # type: ignore
     else:  # normal mode (single process)
-        result = {agent: list() for agent in run_functions.keys()}
+        result = {agent: list() for agent in run_functions.keys()}  # type: ignore
         for agent, run_function in run_functions.items():
             print(f'========== Agent {agent} ==========')
             for i in range(args.num_runs):
@@ -75,11 +75,11 @@ def run_experiment(args: argparse.Namespace) -> None:
         filename += f'new_phi_{args.p_pattern}_p_'
     else:
         filename += f'{args.episode_reset}_random_'
-    filename += f'{args.num_runs}_runs_{args.num_episodes}_episodes'
+    filename += f'{args.num_runs}_runs_{args.num_episodes}_episodes.pkl'
 
     pickle_dir = args.data_dir / args.scenario
     pickle_dir.mkdir(parents=True, exist_ok=True)
-    store_as_pickle(result, pickle_dir / f'{filename}.pkl')
+    store_as_pickle(result, pickle_dir / filename)
 
     print(f'[run_experiment result]\n{result}')
 

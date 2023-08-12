@@ -4,16 +4,9 @@ from pathlib import Path
 from typing import Tuple
 
 import pandas as pd
-
 from plot import (
-    plot_cumulative_rewards,
-    plot_episodic_rewards,
-    plot_kl_divergences,
-    plot_phi_belief_wrt_corr_phi_q,
-    plot_phi_belief_wrt_corr_phi_p,
     plot_phi_beliefs,
     plot_policy_pred_acc,
-    plot_specific_phi_beliefs,
     plot_win_rates,
 )
 from run import positive_int
@@ -23,7 +16,7 @@ from run_experiment import run_experiment
 def set_opponent_type(args: argparse.Namespace, opponent_type: str) -> None:
     if opponent_type not in ['phi', 'new-phi', 'new-phi-noise', 'bpr']:
         raise ValueError(
-            f'opponent_type must be one of phi, new-phi, new-phi-noise, bpr, but got {opponent_type}'
+            f'opponent_type must be phi, new-phi, new-phi-noise, or bpr, but got {opponent_type}'
         )
 
     args.new_phi_noise_opponent = False
