@@ -230,7 +230,7 @@ def run_bpr_okr(args: argparse.Namespace, **kwargs) -> Dict:
         if i == 0:
             agent.update_policy()
 
-        # record the accyracy of step 0 (before the episode starts)
+        # record the accuracy of step 0 (before the episode starts)
         # policy prediction accuracy of the first two episodes is not applicable
         if is_uniform(agent.intra_belief):  # agent's belief is still uniform
             if random.randint(1, agent.n_policies) == env.opponent.policy.value:
@@ -320,7 +320,7 @@ def run_bpr_okr(args: argparse.Namespace, **kwargs) -> Dict:
                 )
 
         # policy prediction accuracy of the first two episodes is not applicable
-        if is_uniform(agent.intra_belief): # agent's belief is still uniform
+        if is_uniform(agent.intra_belief):  # agent's belief is still uniform
             if random.randint(1, agent.n_policies) == env.opponent.policy.value:
                 policy_preds.append(True)
             else:
@@ -410,7 +410,7 @@ def run_bsi(args: argparse.Namespace, **kwargs) -> Dict:
         phi_beliefs.append(agent.phi_belief)
 
         # policy prediction accuracy of the first two episodes is not applicable
-        if is_uniform(agent.belief): # agent's belief is still uniform
+        if is_uniform(agent.belief):  # agent's belief is still uniform
             if random.randint(1, agent.n_policies) == env.opponent.policy.value:
                 step_0_policy_preds.append(True)
             else:
@@ -537,7 +537,7 @@ def run_bsi_pt(args: argparse.Namespace, **kwargs) -> Dict:
         phi_beliefs.append(agent.phi_belief)
 
         # policy prediction accuracy of the first two episodes is not applicable
-        if is_uniform(agent.intra_belief): # agent's belief is still uniform
+        if is_uniform(agent.intra_belief):  # agent's belief is still uniform
             if random.randint(1, agent.n_policies) == env.opponent.policy.value:
                 step_0_policy_preds.append(True)
             else:
@@ -625,7 +625,7 @@ def run_bsi_pt(args: argparse.Namespace, **kwargs) -> Dict:
                     final_result=episode_result,
                 )
 
-        if is_uniform(agent.intra_belief): # agent's belief is still uniform
+        if is_uniform(agent.intra_belief):  # agent's belief is still uniform
             if random.randint(1, agent.n_policies) == env.opponent.policy.value:
                 policy_preds.append(True)
             else:
@@ -767,7 +767,7 @@ def setup_initial_policy(args: argparse.Namespace) -> None:
 
 # FIXME: shouldn't compare 2 calculated floating points
 def is_uniform(array) -> bool:
-    if np.all(array == (1/len(array))):  # the array is uniform
+    if np.all(array == (1 / len(array))):  # the array is uniform
         return True
     else:
         return False

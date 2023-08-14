@@ -7,14 +7,16 @@ import pandas as pd
 from plot import (
     plot_phi_beliefs,
     plot_policy_pred_acc,
+    plot_policy_pred_acc_with_intra,
     plot_win_rates,
+    plot_winning_percentage,
 )
 from run import positive_int
 from run_experiment import run_experiment
 
 
 def set_opponent_type(args: argparse.Namespace, opponent_type: str) -> None:
-    if opponent_type not in ['phi', 'new-phi', 'new-phi-noise', 'bpr']:
+    if opponent_type not in ('phi', 'new-phi', 'new-phi-noise', 'bpr'):
         raise ValueError(
             f'opponent_type must be phi, new-phi, new-phi-noise, or bpr, but got {opponent_type}'
         )
@@ -76,9 +78,8 @@ def experiment_two(args: argparse.Namespace) -> None:
     BSI-PT and BPR-OKR agents against phi opponent
 
     Plots:
-        1. Phi belief
-        2. Accuracy
-        3. Win percentage
+        1. Accuracy
+        2. Win percentage
     """
     set_opponent_type(args, 'phi')
     args.q_distance = 0
@@ -146,31 +147,46 @@ def experiment_three(args: argparse.Namespace) -> None:
     pickle_dir = args.data_dir / args.scenario
     fig_dir, csv_dir = make_fig_csv_dir('exp_three', args.scenario)
 
-    for agent in args.agents:
-        # plot accuracy
-        # TODO: collect accuracy data for other agents
-        if 'bsi' in agent:
-            df = plot_policy_pred_acc(
-                pickle_dir=pickle_dir,
-                num_runs=args.num_runs,
-                num_episodes=args.num_episodes,
+    # plot accuracy
+    for agent, epsilon in product(args.agents, epsilons):
+        p_pattern = 1 - epsilon
+        pickle_file = (
+            pickle_dir
+            / f'op_new_phi_{p_pattern}_p_{args.num_runs}_runs_{args.num_episodes}_episodes.pkl'
+        )
+        figure_file = f'exp3_{args.scenario}_{agent}_{p_pattern}_p_acc.png'
+        if args.scenario == 'baseball' and agent in ('bpr-okr', 'bsi-pt'):
+            df = plot_policy_pred_acc_with_intra(
+                pickle_file=pickle_file,
                 agent=agent,
                 save_fig=True,
-                filename=fig_dir / f'exp3_{args.scenario}_{agent}_acc.png',
+                filename=fig_dir / figure_file,
             )
-            save_as_csv(df, csv_dir / f'exp3_{args.scenario}_{agent}_acc.csv')
+            save_as_csv(df, csv_dir / f'exp3_{args.scenario}_{agent}_{p_pattern}_p_acc.csv')
+        else:
+            pass
+            # df = plot_policy_pred_acc(
+            #     pickle_file=pickle_file,
+            #     agent=agent,
+            #     save_fig=True,
+            #     filename=fig_dir / figure_file,
+            # )
 
-        # plot win rate
-        # FIXME: plot_win_rates is currently looking for phi opponent not new-phi-noise opponent
-        df = plot_win_rates(
-            pickle_dir=pickle_dir,
-            num_runs=args.num_runs,
-            num_episodes=args.num_episodes,
-            agent=agent,
-            save_fig=True,
-            filename=fig_dir / f'exp3_{args.scenario}_{agent}_wr.png',
+    # plot winnning percentage
+    for epsilon in epsilons:
+        p_pattern = 1 - epsilon
+        pickle_file = (
+            pickle_dir
+            / f'op_new_phi_{p_pattern}_p_{args.num_runs}_runs_{args.num_episodes}_episodes.pkl'
         )
-        save_as_csv(df, csv_dir / f'exp3_{args.scenario}_{agent}_wr.csv')
+
+        df = plot_winning_percentage(
+            pickle_file=pickle_file,
+            agents=args.agents,
+            save_fig=True,
+            filename=fig_dir / f'exp3_{args.scenario}_{p_pattern}_p_wp.png',
+        )
+        save_as_csv(df, csv_dir / f'exp3_{args.scenario}_{p_pattern}_p_wp.png')
 
 
 def save_as_csv(df: pd.DataFrame, filename: Path):
@@ -206,8 +222,8 @@ if __name__ == '__main__':
         '--scenarios',
         type=str,
         nargs='*',
-        choices=('grid', 'nav', 'soccer'),
-        default=('grid', 'nav', 'soccer'),
+        choices=('grid', 'nav', 'soccer', 'baseball'),
+        default=('grid', 'nav', 'soccer', 'baseball'),
         help='the scenario(s) you would like to run on',
     )
     parser.add_argument(
