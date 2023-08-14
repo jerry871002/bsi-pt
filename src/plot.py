@@ -222,37 +222,32 @@ def plot_win_rates(
 
 
 def plot_policy_pred_acc(
-    pickle_dir: Union[Path, str],
-    num_runs: int,
-    num_episodes: int,
+    pickle_file: Union[Path, str],
     agent: str,
     save_fig: bool = False,
     filename: Optional[Union[Path, str]] = None,
     show_fig: bool = False,
 ) -> pd.DataFrame:
+    """
+    Plot the policy prediction accuracy (without intra markers) of an agent.
+    This function is specifically for BSI-PT and Bayes-OKR in the baseball environment.
+
+    x-axis: episodes
+    y-axis: policy prediction accuracy
+    """
     if save_fig and filename is None:
         raise RuntimeError('Please provide a filename to save the figure')
 
     df = pd.DataFrame()
-
+    policy_preds = collect_policy_prediction(pickle_file, agent)
     plt.figure(figsize=(15, 6))
-    for i in range(1, 12):
-        pickle_file = Path(pickle_dir) / f'op_{i}_phi_{num_runs}_runs_{num_episodes}_episodes.pkl'
-
-        try:
-            policy_preds = collect_policy_prediction(pickle_file, agent)
-        except FileNotFoundError:
-            print(f'File for phi {i} does not exist, ignore in policy prediction accuracy plot')
-            continue
-
-        plt.plot(policy_preds, '--', label=f'phi_{i}')
-
-        df[f'phi_{i}'] = policy_preds
+    plt.plot(policy_preds, '--')
+    df['policy_pred'] = policy_preds
 
     plt.legend()
-    plt.title(f'Policy Prediction Accuracy Against Different Phi Opponent ({agent})')
+    plt.title(f'Policy Prediction Accuracy (ACC), {agent}')
     plt.xlabel('Episodes')
-    plt.ylabel('Accuracy')
+    plt.ylabel('Policy Prediction Accuracy (ACC)')
     plt.ylim([0, 1.1])
 
     if save_fig:
@@ -428,7 +423,8 @@ def plot_policy_pred_acc_with_intra(
     show_fig: bool = False,
 ):
     """
-    Plot the policy prediction accuracy (including intra) of the agents
+    Plot the policy prediction accuracy (including intra markers) of an agent.
+    This function is specifically for BSI-PT and Bayes-OKR in the baseball environment.
 
     x-axis: episodes
     y-axis: policy prediction accuracy
@@ -446,6 +442,8 @@ def plot_policy_pred_acc_with_intra(
 
     plt.figure(figsize=(15, 6))
     plt.plot(acc_with_intra, '--', color='grey')
+    df['acc_with_intra'] = acc_with_intra
+    # plot the intra-episode markers
     for step in range(STEPS_PER_EPISODE):
         plt.scatter(
             np.arange(num_episodes) * STEPS_PER_EPISODE + step,
@@ -456,10 +454,10 @@ def plot_policy_pred_acc_with_intra(
 
     plt.legend()
     plt.grid()
-    plt.title('τ prediction accuracy (ACC) with intra-episode')
+    plt.title(f'Policy Prediction Accuracy (ACC) with Intra-Episode, {agent}')
     plt.xlabel('Episodes')
     plt.xticks(np.arange(num_episodes) * STEPS_PER_EPISODE, np.arange(num_episodes) + 1)
-    plt.ylabel('τ prediction accuracy (ACC)')
+    plt.ylabel('Policy Prediction Accuracy (ACC)')
     plt.ylim([0.0, 1.1])
 
     if save_fig:
@@ -496,6 +494,9 @@ def collect_policy_prediction(pickle_file: Union[Path, str], agent: str) -> np.n
 
 
 def collect_policy_prediction_with_intra(pickle_file: Union[Path, str], agent: str) -> np.ndarray:
+    """
+    This function is specifically for BSI-PT and Bayes-OKR in the baseball environment.
+    """
     data = load_pickle(pickle_file)
 
     results = data[agent]

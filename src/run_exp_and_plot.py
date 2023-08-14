@@ -97,21 +97,30 @@ def experiment_two(args: argparse.Namespace) -> None:
     pickle_dir = args.data_dir / args.scenario
     fig_dir, csv_dir = make_fig_csv_dir('exp_two', args.scenario)
 
-    for agent in args.agents:
-        # plot accuracy
-        # TODO: collect accuracy data for bpr-okr
-        if 'bsi' in agent:
-            df = plot_policy_pred_acc(
-                pickle_dir=pickle_dir,
-                num_runs=args.num_runs,
-                num_episodes=args.num_episodes,
+    # plot accuracy
+    for agent, phi in product(args.agents, phi_range):
+        pickle_file = (
+            pickle_dir / f'op_phi_{phi}_{args.num_runs}_runs_{args.num_episodes}_episodes.pkl'
+        )
+        figure_file = f'exp2_{args.scenario}_{agent}_{phi}_phi_acc.png'
+        if args.scenario == 'baseball' and agent in ('bpr-okr', 'bsi-pt'):
+            df = plot_policy_pred_acc_with_intra(
+                pickle_file=pickle_file,
                 agent=agent,
                 save_fig=True,
-                filename=fig_dir / f'exp2_{args.scenario}_{agent}_acc.png',
+                filename=fig_dir / figure_file,
             )
-            save_as_csv(df, csv_dir / f'exp2_{args.scenario}_{agent}_acc.csv')
+        else:
+            df = plot_policy_pred_acc(
+                pickle_file=pickle_file,
+                agent=agent,
+                save_fig=True,
+                filename=fig_dir / figure_file,
+            )
+        save_as_csv(df, csv_dir / f'exp2_{args.scenario}_{agent}_acc.csv')
 
-        # plot win rate
+    # plot winning percentage
+    for agent in args.agents:
         df = plot_win_rates(
             pickle_dir=pickle_dir,
             num_runs=args.num_runs,
@@ -162,15 +171,15 @@ def experiment_three(args: argparse.Namespace) -> None:
                 save_fig=True,
                 filename=fig_dir / figure_file,
             )
-            save_as_csv(df, csv_dir / f'exp3_{args.scenario}_{agent}_{p_pattern}_p_acc.csv')
         else:
-            pass
-            # df = plot_policy_pred_acc(
-            #     pickle_file=pickle_file,
-            #     agent=agent,
-            #     save_fig=True,
-            #     filename=fig_dir / figure_file,
-            # )
+            df = plot_policy_pred_acc(
+                pickle_file=pickle_file,
+                agent=agent,
+                save_fig=True,
+                filename=fig_dir / figure_file,
+            )
+
+        save_as_csv(df, csv_dir / f'exp3_{args.scenario}_{agent}_{p_pattern}_p_acc.csv')
 
     # plot winnning percentage
     for epsilon in epsilons:
