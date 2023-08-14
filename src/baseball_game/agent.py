@@ -243,7 +243,8 @@ class BsiBaseAgent(BprAgent):
         super().__init__(x, y)
 
         # initialize phi belief
-        n_tau = len(PhiOpponent.Phi) - 3  # there are three phi uknown to the agent
+        # there are two phi (phi 10 and phi 11) unknown to the agent
+        n_tau = len(PhiOpponent.Phi) - 2
         self._phi_belief = np.ones(n_tau) / n_tau
 
         # initialize intra-episode belief model

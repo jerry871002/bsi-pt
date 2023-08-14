@@ -522,7 +522,6 @@ class PhiOpponent(Opponent):
         NINE = 9
         TEN = 10
         ELEVEN = 11
-        TWELVE = 12
 
     def __init__(self, x=None, y=None):
         super().__init__(x, y)
