@@ -4,7 +4,11 @@ repo_url: https://github.com/jerry871002/bayesian-strategy-inference
 nav:
   - Home: index.md
   - 'Run Individual Experiment': detail.md
-  - 'Experiment Definition': experiment_definition.md
+  - Experiments:
+    - 'Definition': experiments/definition.md
+    - 'Experiment 1 Figures': experiments/experiment_1_figures.md
+    - 'Experiment 2 Figures': experiments/experiment_2_figures.md
+    - 'Experiment 3 Figures': experiments/experiment_3_figures.md
   - Environments:
     - 'Extended batter vs. pitcher game (EBvPG)': environments/baseball_game.md
     - 'Grid World': environments/grid_world.md
@@ -43,6 +47,7 @@ markdown_extensions:
   - abbr
   - admonition
   - footnotes
+  - md_in_html
   - pymdownx.highlight
   - pymdownx.superfences
 
@@ -52,3 +57,6 @@ extra_javascript:
   - https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/contrib/auto-render.min.js
 extra_css:
   - https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/katex.min.css
+
+plugins:
+  - glightbox

@@ -1,4 +1,5 @@
 -r requirements.txt
 
+mkdocs-glightbox==0.3.4
 mkdocs-material==9.1.21
 pre-commit==3.3.3

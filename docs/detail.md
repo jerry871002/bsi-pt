@@ -50,7 +50,7 @@ To see the full usage, run `python run_experiment.py -h`. Also, check [`scripts/
 ## `run_exp_and_plot.py`
 
 !!! note
-    Check [this page](experiment_definition.md) to see the definition of each experiment.
+    Check [this page](experiments/definition.md) to see the definition of each experiment.
 
 This script is for running the experiments in our paper, you have to specify which experiment and which scenario you want to run, for example
 
