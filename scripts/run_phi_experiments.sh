@@ -1,6 +1,13 @@
 #!/bin/bash
 
-# Run experiments over eight types of phi opponent
+# Disclaimer:
+# This script is an example of how to use run_experiment.py
+# and does not generate any results in our paper
+
+# Run experiments over various types of phi opponent
+
+# exit the script if any statement returns a non-true return value
+set -e
 
 program_name=$0
 
