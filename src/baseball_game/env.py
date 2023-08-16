@@ -735,8 +735,7 @@ class NewPhiNoiseOpponent(Opponent):
         if not self.phi:
             raise RuntimeError('Phi is not specified.')
 
-        stochastic = random.random() < self.p_pattern
-        if stochastic:
+        if random.random() > self.p_pattern:
             self.policy = random.choice(list(self.Policy))
         else:
             # phi 1 to phi 4 always keep the same policy

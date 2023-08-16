@@ -65,14 +65,14 @@ def run_bpr_plus(args: argparse.Namespace, **kwargs) -> Dict:
                     final_result=episode_result,
                 )
 
-        # policy prediction accuracy of the first two episodes is not applicable
+        # belief might not be updated in the first two episodes and remains uniform
+        # in this case, use random number as the prediction accuracy
         if is_uniform(agent.belief):
-            # use random number as the prediction accuracy
             if random.randint(1, agent.n_policies) == env.opponent.policy.value:
                 policy_preds.append(True)
             else:
                 policy_preds.append(False)
-        # after the second episode, record whether the policy with highest belief
+        # after the second episode, record whether the policy with the highest belief
         # is the opponent's actual policy
         else:
             if np.argmax(agent.belief) + 1 == env.opponent.policy.value:
@@ -162,12 +162,15 @@ def run_deep_bpr_plus(args: argparse.Namespace, **kwargs) -> Dict:
                     final_result=episode_result,
                 )
 
-        # policy prediction accuracy of the first two episodes is not applicable
+        # belief might not be updated in the first two episodes and remains uniform
+        # in this case, use random number as the prediction accuracy
         if is_uniform(agent.belief):
             if random.randint(1, agent.n_policies) == env.opponent.policy.value:
                 policy_preds.append(True)
             else:
                 policy_preds.append(False)
+        # after the second episode, record whether the policy with the highest belief
+        # is the opponent's actual policy
         else:
             if np.argmax(agent.belief) + 1 == env.opponent.policy.value:
                 policy_preds.append(True)
@@ -230,7 +233,7 @@ def run_bpr_okr(args: argparse.Namespace, **kwargs) -> Dict:
         if i == 0:
             agent.update_policy()
 
-        # record the accyracy of step 0 (before the episode starts)
+        # record the accuracy of step 0 (before the episode starts)
         # policy prediction accuracy of the first two episodes is not applicable
         if is_uniform(agent.intra_belief):  # agent's belief is still uniform
             if random.randint(1, agent.n_policies) == env.opponent.policy.value:
@@ -319,40 +322,42 @@ def run_bpr_okr(args: argparse.Namespace, **kwargs) -> Dict:
                     final_result=episode_result,
                 )
 
-        # policy prediction accuracy of the first two episodes is not applicable
-        if is_uniform(agent.intra_belief): # agent's belief is still uniform
+        # belief might not be updated in the first two episodes and remains uniform
+        # in this case, use random number as the prediction accuracy
+        if is_uniform(agent.belief):
             if random.randint(1, agent.n_policies) == env.opponent.policy.value:
                 policy_preds.append(True)
             else:
                 policy_preds.append(False)
+        # after the second episode, record whether the policy with the highest belief
+        # is the opponent's actual policy
         else:
-            if env.steps == 1:
-                policy_preds.append(step_0_policy_preds[i])
-                step_2_policy_preds.append(step_1_policy_preds[i])
-                step_3_policy_preds.append(step_1_policy_preds[i])
-                step_4_policy_preds.append(step_1_policy_preds[i])
-                step_5_policy_preds.append(step_1_policy_preds[i])
-                step_6_policy_preds.append(step_1_policy_preds[i])
-            elif env.steps == 2:
-                policy_preds.append(step_1_policy_preds[i])
-                step_3_policy_preds.append(step_2_policy_preds[i])
-                step_4_policy_preds.append(step_2_policy_preds[i])
-                step_5_policy_preds.append(step_2_policy_preds[i])
-                step_6_policy_preds.append(step_2_policy_preds[i])
-            elif env.steps == 3:
-                policy_preds.append(step_2_policy_preds[i])
-                step_4_policy_preds.append(step_3_policy_preds[i])
-                step_5_policy_preds.append(step_3_policy_preds[i])
-                step_6_policy_preds.append(step_3_policy_preds[i])
-            elif env.steps == 4:
-                policy_preds.append(step_3_policy_preds[i])
-                step_5_policy_preds.append(step_4_policy_preds[i])
-                step_6_policy_preds.append(step_4_policy_preds[i])
-            elif env.steps == 5:
-                policy_preds.append(step_4_policy_preds[i])
-                step_6_policy_preds.append(step_5_policy_preds[i])
-            elif env.steps == 6:
-                policy_preds.append(step_5_policy_preds[i])
+            if np.argmax(agent.belief) + 1 == env.opponent.policy.value:
+                policy_preds.append(True)
+            else:
+                policy_preds.append(False)
+
+        # "align" the policy prediction accuracy with intra-episode steps
+        if env.steps == 1:
+            step_2_policy_preds.append(step_1_policy_preds[i])
+            step_3_policy_preds.append(step_1_policy_preds[i])
+            step_4_policy_preds.append(step_1_policy_preds[i])
+            step_5_policy_preds.append(step_1_policy_preds[i])
+            step_6_policy_preds.append(step_1_policy_preds[i])
+        elif env.steps == 2:
+            step_3_policy_preds.append(step_2_policy_preds[i])
+            step_4_policy_preds.append(step_2_policy_preds[i])
+            step_5_policy_preds.append(step_2_policy_preds[i])
+            step_6_policy_preds.append(step_2_policy_preds[i])
+        elif env.steps == 3:
+            step_4_policy_preds.append(step_3_policy_preds[i])
+            step_5_policy_preds.append(step_3_policy_preds[i])
+            step_6_policy_preds.append(step_3_policy_preds[i])
+        elif env.steps == 4:
+            step_5_policy_preds.append(step_4_policy_preds[i])
+            step_6_policy_preds.append(step_4_policy_preds[i])
+        elif env.steps == 5:
+            step_6_policy_preds.append(step_5_policy_preds[i])
 
         # use the intra belief of the last episode as the new inter belief
         agent.belief = agent.intra_belief
@@ -410,7 +415,7 @@ def run_bsi(args: argparse.Namespace, **kwargs) -> Dict:
         phi_beliefs.append(agent.phi_belief)
 
         # policy prediction accuracy of the first two episodes is not applicable
-        if is_uniform(agent.belief): # agent's belief is still uniform
+        if is_uniform(agent.belief):  # agent's belief is still uniform
             if random.randint(1, agent.n_policies) == env.opponent.policy.value:
                 step_0_policy_preds.append(True)
             else:
@@ -464,12 +469,15 @@ def run_bsi(args: argparse.Namespace, **kwargs) -> Dict:
                     final_result=episode_result,
                 )
 
-        # policy prediction accuracy of the first two episodes is not applicable
+        # belief might not be updated in the first two episodes and remains uniform
+        # in this case, use random number as the prediction accuracy
         if is_uniform(agent.belief):
             if random.randint(1, agent.n_policies) == env.opponent.policy.value:
                 policy_preds.append(True)
             else:
                 policy_preds.append(False)
+        # after the second episode, record whether the policy with the highest belief
+        # is the opponent's actual policy
         else:
             if np.argmax(agent.belief) + 1 == env.opponent.policy.value:
                 policy_preds.append(True)
@@ -529,15 +537,18 @@ def run_bsi_pt(args: argparse.Namespace, **kwargs) -> Dict:
     step_5_policy_preds = []
     step_6_policy_preds = []
     for i in range(args.num_episodes):
+        # FIXME: this comment needs more explanation, why not update_phi()?
         # need at least two episodes to calculate the first phi belief
-        # don't neet to update phi at the first two episodes
+        # don't need to update phi at the first two episodes
         if i <= 1:
             agent.update_policy()
 
         phi_beliefs.append(agent.phi_belief)
 
+        # FIXME: this comment needs more explanation
+        # FIXME: what does this has to do with the first two episodes?
         # policy prediction accuracy of the first two episodes is not applicable
-        if is_uniform(agent.intra_belief): # agent's belief is still uniform
+        if is_uniform(agent.intra_belief):  # agent's belief is still uniform
             if random.randint(1, agent.n_policies) == env.opponent.policy.value:
                 step_0_policy_preds.append(True)
             else:
@@ -625,39 +636,42 @@ def run_bsi_pt(args: argparse.Namespace, **kwargs) -> Dict:
                     final_result=episode_result,
                 )
 
-        if is_uniform(agent.intra_belief): # agent's belief is still uniform
+        # belief might not be updated in the first two episodes and remains uniform
+        # in this case, use random number as the prediction accuracy
+        if is_uniform(agent.belief):
             if random.randint(1, agent.n_policies) == env.opponent.policy.value:
                 policy_preds.append(True)
             else:
                 policy_preds.append(False)
+        # after the second episode, record whether the policy with the highest belief
+        # is the opponent's actual policy
         else:
-            if env.steps == 1:
-                policy_preds.append(step_0_policy_preds[i])
-                step_2_policy_preds.append(step_1_policy_preds[i])
-                step_3_policy_preds.append(step_1_policy_preds[i])
-                step_4_policy_preds.append(step_1_policy_preds[i])
-                step_5_policy_preds.append(step_1_policy_preds[i])
-                step_6_policy_preds.append(step_1_policy_preds[i])
-            elif env.steps == 2:
-                policy_preds.append(step_1_policy_preds[i])
-                step_3_policy_preds.append(step_2_policy_preds[i])
-                step_4_policy_preds.append(step_2_policy_preds[i])
-                step_5_policy_preds.append(step_2_policy_preds[i])
-                step_6_policy_preds.append(step_2_policy_preds[i])
-            elif env.steps == 3:
-                policy_preds.append(step_2_policy_preds[i])
-                step_4_policy_preds.append(step_3_policy_preds[i])
-                step_5_policy_preds.append(step_3_policy_preds[i])
-                step_6_policy_preds.append(step_3_policy_preds[i])
-            elif env.steps == 4:
-                policy_preds.append(step_3_policy_preds[i])
-                step_5_policy_preds.append(step_4_policy_preds[i])
-                step_6_policy_preds.append(step_4_policy_preds[i])
-            elif env.steps == 5:
-                policy_preds.append(step_4_policy_preds[i])
-                step_6_policy_preds.append(step_5_policy_preds[i])
-            elif env.steps == 6:
-                policy_preds.append(step_5_policy_preds[i])
+            if np.argmax(agent.belief) + 1 == env.opponent.policy.value:
+                policy_preds.append(True)
+            else:
+                policy_preds.append(False)
+
+        # "align" the policy prediction accuracy with intra-episode steps
+        if env.steps == 1:
+            step_2_policy_preds.append(step_1_policy_preds[i])
+            step_3_policy_preds.append(step_1_policy_preds[i])
+            step_4_policy_preds.append(step_1_policy_preds[i])
+            step_5_policy_preds.append(step_1_policy_preds[i])
+            step_6_policy_preds.append(step_1_policy_preds[i])
+        elif env.steps == 2:
+            step_3_policy_preds.append(step_2_policy_preds[i])
+            step_4_policy_preds.append(step_2_policy_preds[i])
+            step_5_policy_preds.append(step_2_policy_preds[i])
+            step_6_policy_preds.append(step_2_policy_preds[i])
+        elif env.steps == 3:
+            step_4_policy_preds.append(step_3_policy_preds[i])
+            step_5_policy_preds.append(step_3_policy_preds[i])
+            step_6_policy_preds.append(step_3_policy_preds[i])
+        elif env.steps == 4:
+            step_5_policy_preds.append(step_4_policy_preds[i])
+            step_6_policy_preds.append(step_4_policy_preds[i])
+        elif env.steps == 5:
+            step_6_policy_preds.append(step_5_policy_preds[i])
 
         agent.add_terminal_state_queue((state_, actions[1], reward))
         agent.update_phi()
@@ -765,9 +779,11 @@ def setup_initial_policy(args: argparse.Namespace) -> None:
         args.op_policy = args.phi  # the first four tau always use the same policy
 
 
-# FIXME: shouldn't compare 2 calculated floating points
-def is_uniform(array) -> bool:
-    if np.all(array == (1/len(array))):  # the array is uniform
+def is_uniform(array, tolerance=1e-6) -> bool:
+    if abs(np.sum(array) - 1) > tolerance:
+        raise ValueError(f'The sum of the array is not 1, {array=}')
+
+    if np.all(np.abs(array - np.mean(array) < tolerance)):
         return True
     else:
         return False
