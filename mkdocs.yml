@@ -6,9 +6,9 @@ nav:
   - 'Run Individual Experiment': detail.md
   - Experiments:
     - 'Definition': experiments/definition.md
-    - 'Experiment 1 Figures': experiments/experiment_1_figures.md
-    - 'Experiment 2 Figures': experiments/experiment_2_figures.md
-    - 'Experiment 3 Figures': experiments/experiment_3_figures.md
+    - 'Experiment 1 Example Figures': experiments/experiment_1_figures.md
+    - 'Experiment 2 Example Figures': experiments/experiment_2_figures.md
+    - 'Experiment 3 Example Figures': experiments/experiment_3_figures.md
   - Environments:
     - 'Extended batter vs. pitcher game (EBvPG)': environments/baseball_game.md
     - 'Grid World': environments/grid_world.md
