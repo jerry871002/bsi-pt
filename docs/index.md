@@ -49,7 +49,7 @@ scripts/run_exps_and_plot.sh [NUM_RUNS] [NUM_EPISODES]
 
 `[NUM_EPISODES]` defines the length of each game, and `[NUM_RUNS]` defines the number of games to run.
 
-The value of `[NUM_RUNS]` is quite large in the paper (200,000 runs) since we want to ensure the results are statistically significant. We set the default of `[NUM_RUNS]` to 1,000 in the project. However, it still requires tens of minutes to complete. For a quick run, it's recommended to set it to a smaller number (e.g. 10).
+The value of `[NUM_RUNS]` is quite large in the paper (200,000 runs) since we want to ensure the results are statistically significant. We set the default of `[NUM_RUNS]` to 1,000 in the project. However, it still requires a few minutes to complete. For a quick run, it's recommended to set it to a smaller number (e.g. 10). However, please note that the results may be quite unstable with a small number of runs.
 
 The raw data will be stored in `src/data/` in `.pkl` format. The figures will be generated from those data and stored in `src/fig/`, then the data points in the figures will be stored in CSV format in `src/csv/`.
 
