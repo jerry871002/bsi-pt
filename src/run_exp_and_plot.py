@@ -8,8 +8,8 @@ from plot import (
     plot_phi_beliefs,
     plot_policy_pred_acc,
     plot_policy_pred_acc_with_intra,
-    plot_win_rates,
     plot_winning_percentage,
+    plot_winning_percentage_multi_phi_op,
 )
 from run import positive_int
 from run_experiment import run_experiment
@@ -100,7 +100,7 @@ def experiment_two(args: argparse.Namespace) -> None:
     # plot accuracy
     for agent, phi in product(args.agents, phi_range):
         pickle_file = (
-            pickle_dir / f'op_phi_{phi}_{args.num_runs}_runs_{args.num_episodes}_episodes.pkl'
+            pickle_dir / f'op_{phi}_phi_{args.num_runs}_runs_{args.num_episodes}_episodes.pkl'
         )
         figure_file = f'exp2_{args.scenario}_{agent}_{phi}_phi_acc.png'
         if args.scenario == 'baseball' and agent in ('bpr-okr', 'bsi-pt'):
@@ -121,7 +121,7 @@ def experiment_two(args: argparse.Namespace) -> None:
 
     # plot winning percentage
     for agent in args.agents:
-        df = plot_win_rates(
+        df = plot_winning_percentage_multi_phi_op(
             pickle_dir=pickle_dir,
             num_runs=args.num_runs,
             num_episodes=args.num_episodes,

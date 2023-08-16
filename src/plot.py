@@ -93,6 +93,13 @@ def plot_phi_beliefs(
     filename: Optional[Union[Path, str]] = None,
     show_fig: bool = False,
 ) -> pd.DataFrame:
+    """
+    Plot the phi beliefs of an agent.
+
+    x-axis: episodes
+    y-axis: phi beliefs
+    each line: a phi
+    """
     if save_fig and filename is None:
         raise RuntimeError('Please provide a filename to save the figure')
 
@@ -114,11 +121,13 @@ def plot_phi_beliefs(
 
         df[f'phi_{i}'] = phi_belief
 
+    num_episodes = len(avg_phi_belief[0])
     plt.legend()
     plt.title(f'Phi Belief: {pickle_file} ({agent})')
     plt.xlabel('Episodes')
+    plt.xticks(np.arange(num_episodes), np.arange(num_episodes) + 1)
     plt.ylabel('Phi Belief')
-    plt.ylim([0, 1.1])
+    plt.ylim([0.0, 1.0])
 
     if save_fig:
         plt.savefig(filename)
@@ -178,7 +187,7 @@ def plot_specific_phi_beliefs(
     return df
 
 
-def plot_win_rates(
+def plot_winning_percentage_multi_phi_op(
     pickle_dir: Union[Path, str],
     num_runs: int,
     num_episodes: int,
@@ -187,6 +196,13 @@ def plot_win_rates(
     filename: Optional[Union[Path, str]] = None,
     show_fig: bool = False,
 ) -> pd.DataFrame:
+    """
+    Plot the winning percentage (WP) of an agent against different phi opponents.
+
+    x-axis: episodes
+    y-axis: winning percentage (WP)
+    each line: a phi opponent
+    """
     if save_fig and filename is None:
         raise RuntimeError('Please provide a filename to save the figure')
 
@@ -207,10 +223,13 @@ def plot_win_rates(
         df[f'phi_{i}'] = win_rates
 
     plt.legend()
+    plt.grid()
     plt.title(f'Win Rate Against Different Phi Opponent ({agent})')
+    plt.xticks(np.arange(num_episodes), np.arange(num_episodes) + 1)
     plt.xlabel('Episodes')
     plt.ylabel('Win Rate')
-    plt.ylim([0, 1.1])
+    plt.ylim([0.3, 0.5])
+    plt.yticks(np.arange(0.3, 0.51, 0.05))
 
     if save_fig:
         plt.savefig(filename)

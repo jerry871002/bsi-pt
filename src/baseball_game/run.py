@@ -498,15 +498,12 @@ def run_bsi(args: argparse.Namespace, **kwargs) -> Dict:
             final_result=episode_result,
         )
 
-    corresponding_phi = None
-
     return {
         'rewards': rewards,
         'phi_beliefs': phi_beliefs,
         'win_records': win_records,
         'policy_preds': policy_preds,
         'step_0_policy_preds': step_0_policy_preds,
-        'corresponding_phi': corresponding_phi,
         'hit_count': env.hit_count,
         'strike_out_count': env.strike_out_count,
         'hit_out_count': env.hit_out_count,
@@ -686,7 +683,7 @@ def run_bsi_pt(args: argparse.Namespace, **kwargs) -> Dict:
             final_action=actions[1],
             final_result=episode_result,
         )
-    corresponding_phi = None
+
     return {
         'rewards': rewards,
         'phi_beliefs': phi_beliefs,
@@ -699,7 +696,6 @@ def run_bsi_pt(args: argparse.Namespace, **kwargs) -> Dict:
         'step_4_policy_preds': step_4_policy_preds,
         'step_5_policy_preds': step_5_policy_preds,
         'step_6_policy_preds': step_6_policy_preds,
-        'corresponding_phi': corresponding_phi,
         'hit_count': env.hit_count,
         'strike_out_count': env.strike_out_count,
         'hit_out_count': env.hit_out_count,
