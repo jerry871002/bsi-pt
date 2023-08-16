@@ -195,7 +195,7 @@ def experiment_three(args: argparse.Namespace) -> None:
             save_fig=True,
             filename=fig_dir / f'exp3_{args.scenario}_{p_pattern}_p_wp.png',
         )
-        save_as_csv(df, csv_dir / f'exp3_{args.scenario}_{p_pattern}_p_wp.png')
+        save_as_csv(df, csv_dir / f'exp3_{args.scenario}_{p_pattern}_p_wp.csv')
 
 
 def save_as_csv(df: pd.DataFrame, filename: Path):
