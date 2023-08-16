@@ -765,9 +765,11 @@ def setup_initial_policy(args: argparse.Namespace) -> None:
         args.op_policy = args.phi  # the first four tau always use the same policy
 
 
-# FIXME: shouldn't compare 2 calculated floating points
-def is_uniform(array) -> bool:
-    if np.all(array == (1 / len(array))):  # the array is uniform
+def is_uniform(array, tolerance=1e-6) -> bool:
+    if abs(np.sum(array) - 1) > tolerance:
+        raise ValueError(f'The sum of the array is not 1, {array=}')
+
+    if np.all(np.abs(array - np.mean(array) < tolerance)):
         return True
     else:
         return False
