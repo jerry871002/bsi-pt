@@ -1,9 +1,16 @@
 #!/bin/bash
 
+# Disclaimer:
+# This script is an example of how to use run_experiment.py
+# and does not generate any results in our paper
+
 # Run experiments over three types of opponent
 #   - Random Switch Slow (switches every 10 episodes)
 #   - Random Switch Fast (switches every 2 episodes)
 #   - BPR Oppnent
+
+# exit the script if any statement returns a non-true return value
+set -e
 
 program_name=$0
 
