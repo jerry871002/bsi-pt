@@ -93,6 +93,13 @@ def plot_phi_beliefs(
     filename: Optional[Union[Path, str]] = None,
     show_fig: bool = False,
 ) -> pd.DataFrame:
+    """
+    Plot the phi beliefs of an agent.
+
+    x-axis: episodes
+    y-axis: phi beliefs
+    each line: a phi
+    """
     if save_fig and filename is None:
         raise RuntimeError('Please provide a filename to save the figure')
 
@@ -114,11 +121,13 @@ def plot_phi_beliefs(
 
         df[f'phi_{i}'] = phi_belief
 
+    num_episodes = len(avg_phi_belief[0])
     plt.legend()
     plt.title(f'Phi Belief: {pickle_file} ({agent})')
     plt.xlabel('Episodes')
+    plt.xticks(np.arange(num_episodes), np.arange(num_episodes) + 1)
     plt.ylabel('Phi Belief')
-    plt.ylim([0, 1.1])
+    plt.ylim([0.0, 1.0])
 
     if save_fig:
         plt.savefig(filename)
