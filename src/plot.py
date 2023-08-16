@@ -244,11 +244,14 @@ def plot_policy_pred_acc(
     plt.plot(policy_preds, '--')
     df['policy_pred'] = policy_preds
 
+    num_episodes = len(policy_preds)
     plt.legend()
+    plt.grid()
     plt.title(f'Policy Prediction Accuracy (ACC), {agent}')
     plt.xlabel('Episodes')
+    plt.xticks(np.arange(num_episodes), np.arange(num_episodes) + 1)
     plt.ylabel('Policy Prediction Accuracy (ACC)')
-    plt.ylim([0, 1.1])
+    plt.ylim([0.0, 1.0])
 
     if save_fig:
         plt.savefig(filename)
@@ -438,6 +441,7 @@ def plot_policy_pred_acc_with_intra(
 
     STEPS_PER_EPISODE = 4
     acc_with_intra = np.array([policy_pred_acc_with_intra[i] for i in range(STEPS_PER_EPISODE)])
+    # 'F' means to flatten in column-major
     acc_with_intra = acc_with_intra.flatten(order='F')
 
     plt.figure(figsize=(15, 6))
@@ -458,7 +462,7 @@ def plot_policy_pred_acc_with_intra(
     plt.xlabel('Episodes')
     plt.xticks(np.arange(num_episodes) * STEPS_PER_EPISODE, np.arange(num_episodes) + 1)
     plt.ylabel('Policy Prediction Accuracy (ACC)')
-    plt.ylim([0.0, 1.1])
+    plt.ylim([0.0, 1.0])
 
     if save_fig:
         plt.savefig(filename)
