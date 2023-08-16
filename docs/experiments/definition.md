@@ -2,6 +2,8 @@
 
 ## Experiment 1
 
+> Check the [example figures](experiment_1_figures.md)
+
 This experiment correspounds to Figure 3 in the paper.
 
 - Agent: BSI-PT
@@ -9,6 +11,8 @@ This experiment correspounds to Figure 3 in the paper.
 - Plot: BSI-PT agent's belief of $\phi_i$
 
 ## Experiment 2
+
+> Check the [example figures](experiment_2_figures.md)
 
 This experiment correspounds to Figure 4 and 5 in the paper.
 
@@ -19,6 +23,8 @@ This experiment correspounds to Figure 4 and 5 in the paper.
     - Winning percentage (WP)
 
 ## Experiment 3
+
+> Check the [example figures](experiment_3_figures.md)
 
 This experiment correspounds to Figure 7 and 8 in the paper.
 
