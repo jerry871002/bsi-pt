@@ -1,6 +1,6 @@
 # Soccer Game
 
-![Soccer Game](https://hackmd.io/_uploads/ryloeQ9cn.png)
+![Soccer Game](../img/soccer_game.png)
 
 In Soccer Game, the agent with $\pi_i$ aims to approach the opponent with $\tau_i$ to steal the ball and then brings the ball to the corresponding goal on the right side.
 

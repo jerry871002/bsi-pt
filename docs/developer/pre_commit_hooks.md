@@ -38,3 +38,4 @@ pre-commit run --all-files
 - `requirements-txt-fixer`: Sorts entries in requirements.txt and constraints.txt and removes incorrect entry for `pkg-resources==0.0.0`.
 - `black`: Python code formatter. A tool to enforce a consistent coding style throughout a codebase.
 - `ruff`: Python linter. A tool that examines the source code for potential issues, violations of coding standards, and possible errors.
+- `mypy`: Python static type checker. A tool that helps identify and prevent type-related errors.

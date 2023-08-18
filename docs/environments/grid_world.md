@@ -1,6 +1,6 @@
 # Grid World
 
-![Grid World](https://hackmd.io/_uploads/Hktdlm9c2.png)
+![Grid World](../img/grid_world.png){ width="400" }
 
 In Grid World, the agent with $\pi_i$ aims to reach a goal, while avoiding any collision with the opponent with $\tau_i$.
 
