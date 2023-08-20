@@ -1,6 +1,6 @@
 # Navigation Game
 
-![Navigation Game](https://hackmd.io/_uploads/By-3lQ5qh.png)
+![Navigation Game](../img/navigation_game.png)
 
 In Navigation Game, the agent with policy $\pi_i$ aims to move to the same goal that the opponent with $\tau_i$ plans to reach. Note that any action that causes the agent to pass through the obstacles (the grey grids) or to move out of the field is ignored.
 
