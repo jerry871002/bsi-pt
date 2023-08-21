@@ -4,7 +4,6 @@ from enum import Enum
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
-
 from utils import normalize_distribution
 
 State = Tuple[int, int, int, int]
@@ -35,7 +34,7 @@ class GridWorld:
         new_phi_opponent=False,
         new_phi_noise_opponent=False,
         p_pattern=0,
-        q=0
+        q=0,
     ):
         # set dimension of the field
         self.width = width
@@ -75,10 +74,7 @@ class GridWorld:
         # performance models
         self.performance_models: Dict[Optional[State], np.ndarray] = {}
 
-    def generate_performance_model(
-        self,
-        start_state: Optional[State] = None
-    ) -> np.ndarray:
+    def generate_performance_model(self, start_state: Optional[State] = None) -> np.ndarray:
         """
         Generate the performance model according to the environment's settings.
         Calling this function without specifying `start_state` will return the
@@ -97,10 +93,7 @@ class GridWorld:
         if start_state is not None:
             agent_loc = start_state[:2]
             opponent_loc = start_state[2:]
-            if (
-                agent_loc in (self.G1, self.G2) and
-                opponent_loc in (self.G1, self.G2)
-            ):
+            if agent_loc in (self.G1, self.G2) and opponent_loc in (self.G1, self.G2):
                 start_state = None
 
         if start_state in self.performance_models:
@@ -116,9 +109,7 @@ class GridWorld:
 
         # each row represent an opponent policy (tau)
         # each column represent an agent policy (pi)
-        performance_model = [
-            [0 for _ in list(agent.Policy)] for _ in list(opponent.Policy)
-        ]
+        performance_model = [[0 for _ in list(agent.Policy)] for _ in list(opponent.Policy)]
 
         for agent_policy in list(agent.Policy):
             for opponent_policy in list(opponent.Policy):
@@ -142,7 +133,7 @@ class GridWorld:
                     if done:
                         break
 
-                performance_model[opponent_policy.value-1][agent_policy.value-1] = rewards
+                performance_model[opponent_policy.value - 1][agent_policy.value - 1] = rewards
 
         self.performance_models[start_state] = np.array(performance_model)
         return self.performance_models[start_state]
@@ -231,14 +222,12 @@ class GridWorld:
         agent_loc = self.agent.get_xy()
         opponent_loc = self.opponent.get_xy()
 
-        if (
-            (agent_loc_ == self.G1 or agent_loc == self.G1) and
-            (opponent_loc_ == self.G2 or opponent_loc == self.G2)
+        if (agent_loc_ == self.G1 or agent_loc == self.G1) and (
+            opponent_loc_ == self.G2 or opponent_loc == self.G2
         ):
             return True, self.reward_G1
-        elif (
-            (agent_loc_ == self.G2 or agent_loc == self.G2) and
-            (opponent_loc_ == self.G1 or opponent_loc == self.G1)
+        elif (agent_loc_ == self.G2 or agent_loc == self.G2) and (
+            opponent_loc_ == self.G1 or opponent_loc == self.G1
         ):
             return True, self.reward_G2
 
@@ -248,9 +237,8 @@ class GridWorld:
     def collide(self, agent_next_loc: Location, opponent_next_loc: Location) -> bool:
         agent_loc = self.agent.get_xy()
         opponent_loc = self.opponent.get_xy()
-        return (
-            agent_next_loc == opponent_next_loc or
-            (agent_next_loc == opponent_loc and opponent_next_loc == agent_loc)
+        return agent_next_loc == opponent_next_loc or (
+            agent_next_loc == opponent_loc and opponent_next_loc == agent_loc
         )
 
     def show(self):
@@ -294,6 +282,7 @@ class Agent:
         self.set_xy(x, y)
 
     def move(self, action):
+        # fmt: off
         moves = {
             Move.UP      : (self.x,   self.y-1),
             Move.RIGHT   : (self.x+1, self.y),
@@ -301,6 +290,7 @@ class Agent:
             Move.LEFT    : (self.x-1, self.y),
             Move.STANDBY : (self.x  , self.y)
         }
+        # fmt: on
 
         return moves.get(action, (self.x, self.y))
 
@@ -344,6 +334,7 @@ class Opponent(Agent):
         Returns:
             Move: The action to take.
         """
+        # fmt: off
         if self.policy is Opponent.Policy.ONE:
             # 1   2
             #     *
@@ -392,14 +383,13 @@ class Opponent(Agent):
             if self.get_xy() == (1, 2): return Move.UP
             if self.get_xy() == (1, 1): return Move.UP
             if self.get_xy() == (1, 0): return Move.RIGHT
+        # fmt: on
 
         # `Move.STANDBY` when already arrived at the goal
         if self.get_xy() in ((0, 0), (2, 0)):
             return Move.STANDBY
 
-        raise ValueError(
-            f'Opponent with policy {self._policy} shouldn\'t be in {self.get_xy()}'
-        )
+        raise ValueError(f'Opponent with policy {self._policy} shouldn\'t be in {self.get_xy()}')
 
     def switch_policy(self, switch_point: Location, policy1: Policy, policy2: Policy):
         if self.get_xy() == switch_point:
@@ -407,6 +397,7 @@ class Opponent(Agent):
                 self.policy = policy2
             elif self.policy is policy2:
                 self.policy = policy1
+
 
 class BprOpponent(Opponent):
     def __init__(self, x=None, y=None):
@@ -438,13 +429,19 @@ class BprOpponent(Opponent):
             utility (int): The reward the agent gets in a episode.
         """
         # find the currently observed utility in the performance model
-        likelihood = (self.performance_model[self.policy.value-1] == utility).astype(float)
-        new_belief_unnormalized = self.belief * likelihood / (np.sum(likelihood * self.belief) + 1e-6)
+        likelihood = (self.performance_model[self.policy.value - 1] == utility).astype(float)
+        new_belief_unnormalized = (
+            self.belief * likelihood / (np.sum(likelihood * self.belief) + 1e-6)
+        )
         self.belief = normalize_distribution(new_belief_unnormalized, 0.01)
 
     def update_policy(self) -> None:
         belief_mul_performance = self.belief @ np.transpose(self.performance_model)
-        candidates = np.argwhere(belief_mul_performance == np.amin(belief_mul_performance)).flatten().tolist()
+        candidates = (
+            np.argwhere(belief_mul_performance == np.amin(belief_mul_performance))
+            .flatten()
+            .tolist()
+        )
         self.policy = list(Opponent.Policy)[random.choice(candidates)]
 
 
@@ -474,7 +471,10 @@ class PhiOpponent(Opponent):
     @phi.setter
     def phi(self, new_phi):
         if not isinstance(new_phi, self.Phi):
-            raise ValueError(f'Phi should be represented by `PhiOpponent.Phi` class, invalid value: {new_phi} ({type(new_phi)})')
+            raise ValueError(
+                'Phi should be represented by `PhiOpponent.Phi` class, '
+                f'invalid value: {new_phi} ({type(new_phi)})'
+            )
         self._phi = new_phi
 
     def update_policy(self, ternimal_state: Tuple[Location, Location]) -> None:
@@ -514,10 +514,13 @@ class PhiOpponent(Opponent):
                 self.policy = self.Policy.FIVE
         # phi 8
         elif self.phi is self.Phi.EIGHT:
-            if any((
-                terminal_state_combination[0], terminal_state_combination[3],
-                terminal_state_combination[5]
-            )):
+            if any(
+                (
+                    terminal_state_combination[0],
+                    terminal_state_combination[3],
+                    terminal_state_combination[5],
+                )
+            ):
                 self.policy = self.Policy.ONE
             elif terminal_state_combination[2]:
                 self.policy = self.Policy.TWO
@@ -584,7 +587,7 @@ class NewPhiOpponent(Opponent):
             7: [1, 2, 3, 4, 5, 1, 2],  # phi 7
             8: [1, 4, 2, 1, 5, 1, 3],  # phi 8
             9: [5, 5, 3, 3, 2, 1, 4],  # phi 9
-            10: [5, 1, 2, 2, 3, 4, 5]  # phi 10
+            10: [5, 1, 2, 2, 3, 4, 5],  # phi 10
         }
         self.corresponding_phi, self.strategy = self.generate_strategy(q)
 
@@ -641,7 +644,7 @@ class NewPhiNoiseOpponent(Opponent):
             7: [1, 2, 3, 4, 5, 1, 2],  # phi 7
             8: [1, 4, 2, 1, 5, 1, 3],  # phi 8
             9: [5, 5, 3, 3, 2, 1, 4],  # phi 9
-            10: [5, 1, 2, 2, 3, 4, 5]  # phi 10
+            10: [5, 1, 2, 2, 3, 4, 5],  # phi 10
         }
         self.corresponding_phi = random.choice(list(self.strategy_library.keys()))
         self.strategy = self.strategy_library[self.corresponding_phi]
@@ -671,5 +674,5 @@ def get_terminal_state_combination(
         opponent_location == G2 and agent_location not in (G1, G2),
         opponent_location not in (G1, G2) and agent_location == G1,
         opponent_location not in (G1, G2) and agent_location == G2,
-        opponent_location not in (G1, G2) and agent_location not in (G1, G2)
+        opponent_location not in (G1, G2) and agent_location not in (G1, G2),
     )

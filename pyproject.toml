@@ -16,8 +16,10 @@ unfixable = []
 line-length = 100
 
 [tool.ruff.per-file-ignores]
-# Ignore "Multiple statements on one line" for `get_action`
+# Ignore "Multiple statements on one line"
 "**/env.py" = ["E701"]
+"src/grid_world/agent.py" = ["E701"]
+"src/soccer_game/agent.py" = ["E701"]
 
 [tool.mypy]
 ignore_missing_imports = true

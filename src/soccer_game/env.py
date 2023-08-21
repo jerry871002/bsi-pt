@@ -4,7 +4,6 @@ from enum import Enum
 from typing import List, Tuple
 
 import numpy as np
-
 from utils import normalize_distribution
 
 Location = Tuple[int, int]
@@ -39,15 +38,13 @@ class SoccerGame:
         new_phi_opponent=False,
         new_phi_noise_opponent=False,
         p_pattern=0,
-        q=0
+        q=0,
     ):
         # check if the dimension is valid
         if width < 2:
             raise ValueError('`width` must be greater than 2')
         if not 0 < goal_size <= height:
-            raise ValueError(
-                '`goal_size` must be greater than 0 and smaller or equal to `height`'
-            )
+            raise ValueError('`goal_size` must be greater than 0 and smaller or equal to `height`')
         if (height - goal_size) % 2 != 0:
             raise ValueError('`height` and `goal_size` must both be odd or even')
 
@@ -109,9 +106,7 @@ class SoccerGame:
 
         # each row represent an opponent policy (tau)
         # each column represent an agent policy (pi)
-        performance_model = [
-            [0 for _ in list(agent.Policy)] for _ in list(opponent.Policy)
-        ]
+        performance_model = [[0 for _ in list(agent.Policy)] for _ in list(opponent.Policy)]
 
         for agent_policy in list(agent.Policy):
             for opponent_policy in list(opponent.Policy):
@@ -124,7 +119,7 @@ class SoccerGame:
                     rewards += reward
                     if done:
                         break
-                performance_model[opponent_policy.value-1][agent_policy.value-1] = rewards
+                performance_model[opponent_policy.value - 1][agent_policy.value - 1] = rewards
 
         return np.array(performance_model)
 
@@ -208,25 +203,24 @@ class SoccerGame:
         agent_x_, agent_y_ = self.agent.move(agent_action)
         # agent arrives at the goal
         if (
-            self.ball_possession is SoccerGame.Possession.LEFT and
-            agent_x_ == self.width and
-            (self.height - self.goal_size) // 2 <= agent_y_ <= (self.height + self.goal_size) // 2 - 1
+            self.ball_possession is SoccerGame.Possession.LEFT
+            and agent_x_ == self.width
+            and (self.height - self.goal_size) // 2
+            <= agent_y_
+            <= (self.height + self.goal_size) // 2 - 1
         ):
             # check if the goal is consistent with the opponent's policy
             # return if_game_over, reward
             if (
-                self.opponent.policy in (Opponent.Policy.ONE, Opponent.Policy.TWO) and
-                (agent_x_, agent_y_) == self.G1
+                self.opponent.policy in (Opponent.Policy.ONE, Opponent.Policy.TWO)
+                and (agent_x_, agent_y_) == self.G1
             ):
                 return True, self.reward_G1
-            elif (
-                self.opponent.policy is Opponent.Policy.THREE and
-                (agent_x_, agent_y_) == self.G2
-            ):
+            elif self.opponent.policy is Opponent.Policy.THREE and (agent_x_, agent_y_) == self.G2:
                 return True, self.reward_G2
             elif (
-                self.opponent.policy in (Opponent.Policy.FOUR, Opponent.Policy.FIVE) and
-                (agent_x_, agent_y_) == self.G3
+                self.opponent.policy in (Opponent.Policy.FOUR, Opponent.Policy.FIVE)
+                and (agent_x_, agent_y_) == self.G3
             ):
                 return True, self.reward_G3
 
@@ -235,9 +229,11 @@ class SoccerGame:
         opponent_x_, opponent_y_ = self.opponent.move(opponent_action)
         # opponent arrives at the goal
         if (
-            self.ball_possession is SoccerGame.Possession.RIGHT and
-            opponent_x_ == -1 and
-            (self.height - self.goal_size) // 2 <= opponent_y_ <= (self.height + self.goal_size) // 2 - 1
+            self.ball_possession is SoccerGame.Possession.RIGHT
+            and opponent_x_ == -1
+            and (self.height - self.goal_size) // 2
+            <= opponent_y_
+            <= (self.height + self.goal_size) // 2 - 1
         ):
             # check which goal is opponent arriving at
             # return if_game_over, reward
@@ -258,9 +254,8 @@ class SoccerGame:
         ar_current_loc = self.opponent.get_xy()
 
         if (
-            (al_current_loc == ar_next_loc and ar_current_loc == al_next_loc) or
-            al_next_loc == ar_next_loc
-        ):
+            al_current_loc == ar_next_loc and ar_current_loc == al_next_loc
+        ) or al_next_loc == ar_next_loc:
             return True
         else:
             return False
@@ -276,9 +271,10 @@ class SoccerGame:
         for y in range(self.height):
             for x in range(-1, self.width + 1):
                 # draw the goals
-                if (
-                    (x == -1 or x == self.width) and
-                    ((self.height - self.goal_size) // 2 <= y <= (self.height + self.goal_size) // 2 - 1)
+                if (x == -1 or x == self.width) and (
+                    (self.height - self.goal_size) // 2
+                    <= y
+                    <= (self.height + self.goal_size) // 2 - 1
                 ):
                     print('+', end='')
                     continue
@@ -302,11 +298,11 @@ class Agent:
 
     def move(self, action):
         moves = {
-            Move.UP      : (self.x,   self.y-1),
-            Move.RIGHT   : (self.x+1, self.y),
-            Move.DOWN    : (self.x,   self.y+1),
-            Move.LEFT    : (self.x-1, self.y),
-            Move.STANDBY : (self.x  , self.y)
+            Move.UP: (self.x, self.y - 1),
+            Move.RIGHT: (self.x + 1, self.y),
+            Move.DOWN: (self.x, self.y + 1),
+            Move.LEFT: (self.x - 1, self.y),
+            Move.STANDBY: (self.x, self.y),
         }
 
         return moves.get(action, (self.x, self.y))
@@ -325,7 +321,9 @@ class Agent:
     @ball_possession.setter
     def ball_possession(self, possession):
         if type(possession) != bool:
-            raise ValueError(f'Ball possession should be a boolean value')
+            raise ValueError(
+                f'Ball possession should be a boolean value, invalid value: {possession}'
+            )
         self._ball_possession = possession
 
 
@@ -356,50 +354,76 @@ class Opponent(Agent):
             #    * * * *
             # G1 *     *
             #          s
-            if self.get_xy() == (3, 2): return Move.UP
-            if self.get_xy() == (3, 1): return Move.UP
-            if self.get_xy() == (3, 0): return Move.LEFT
-            if self.get_xy() == (2, 0): return Move.LEFT
-            if self.get_xy() == (1, 0): return Move.LEFT
-            if self.get_xy() == (0, 0): return Move.DOWN
-            if self.get_xy() == (0, 1): return Move.LEFT
+            if self.get_xy() == (3, 2):
+                return Move.UP
+            if self.get_xy() == (3, 1):
+                return Move.UP
+            if self.get_xy() == (3, 0):
+                return Move.LEFT
+            if self.get_xy() == (2, 0):
+                return Move.LEFT
+            if self.get_xy() == (1, 0):
+                return Move.LEFT
+            if self.get_xy() == (0, 0):
+                return Move.DOWN
+            if self.get_xy() == (0, 1):
+                return Move.LEFT
         elif self._policy is Opponent.Policy.TWO:
             # G1 * * * *
             #          s
-            if self.get_xy() == (3, 2): return Move.UP
-            if self.get_xy() == (3, 1): return Move.LEFT
-            if self.get_xy() == (2, 1): return Move.LEFT
-            if self.get_xy() == (1, 1): return Move.LEFT
-            if self.get_xy() == (0, 1): return Move.LEFT
+            if self.get_xy() == (3, 2):
+                return Move.UP
+            if self.get_xy() == (3, 1):
+                return Move.LEFT
+            if self.get_xy() == (2, 1):
+                return Move.LEFT
+            if self.get_xy() == (1, 1):
+                return Move.LEFT
+            if self.get_xy() == (0, 1):
+                return Move.LEFT
         elif self._policy is Opponent.Policy.THREE:
             # G2 * * * s
-            if self.get_xy() == (3, 2): return Move.LEFT
-            if self.get_xy() == (2, 2): return Move.LEFT
-            if self.get_xy() == (1, 2): return Move.LEFT
-            if self.get_xy() == (0, 2): return Move.LEFT
+            if self.get_xy() == (3, 2):
+                return Move.LEFT
+            if self.get_xy() == (2, 2):
+                return Move.LEFT
+            if self.get_xy() == (1, 2):
+                return Move.LEFT
+            if self.get_xy() == (0, 2):
+                return Move.LEFT
         elif self._policy is Opponent.Policy.FOUR:
             #          s
             # G3 * * * *
-            if self.get_xy() == (3, 2): return Move.DOWN
-            if self.get_xy() == (3, 3): return Move.LEFT
-            if self.get_xy() == (2, 3): return Move.LEFT
-            if self.get_xy() == (1, 3): return Move.LEFT
-            if self.get_xy() == (0, 3): return Move.LEFT
+            if self.get_xy() == (3, 2):
+                return Move.DOWN
+            if self.get_xy() == (3, 3):
+                return Move.LEFT
+            if self.get_xy() == (2, 3):
+                return Move.LEFT
+            if self.get_xy() == (1, 3):
+                return Move.LEFT
+            if self.get_xy() == (0, 3):
+                return Move.LEFT
         elif self._policy is Opponent.Policy.FIVE:
             #          s
             # G3 *     *
             #    * * * *
-            if self.get_xy() == (3, 2): return Move.DOWN
-            if self.get_xy() == (3, 3): return Move.DOWN
-            if self.get_xy() == (3, 4): return Move.LEFT
-            if self.get_xy() == (2, 4): return Move.LEFT
-            if self.get_xy() == (1, 4): return Move.LEFT
-            if self.get_xy() == (0, 4): return Move.UP
-            if self.get_xy() == (0, 3): return Move.LEFT
+            if self.get_xy() == (3, 2):
+                return Move.DOWN
+            if self.get_xy() == (3, 3):
+                return Move.DOWN
+            if self.get_xy() == (3, 4):
+                return Move.LEFT
+            if self.get_xy() == (2, 4):
+                return Move.LEFT
+            if self.get_xy() == (1, 4):
+                return Move.LEFT
+            if self.get_xy() == (0, 4):
+                return Move.UP
+            if self.get_xy() == (0, 3):
+                return Move.LEFT
 
-        raise ValueError(
-            f'Opponent with policy {self._policy} shouldn\'t be in {self.get_xy()}'
-        )
+        raise ValueError(f'Opponent with policy {self._policy} shouldn\'t be in {self.get_xy()}')
 
 
 class BprOpponent(Opponent):
@@ -431,14 +455,23 @@ class BprOpponent(Opponent):
             utility (int): The reward the agent gets in a episode.
         """
         # posterior (belief) = prior * likelihood (performance model)
-        likelihood = (self.performance_model[self.policy.value-1] == utility).astype(float) # find the currently observed utility in the performance model
-        new_belief_unnormalized = self.belief * likelihood / (np.sum(likelihood * self.belief) + 1e-6)
+        likelihood = (self.performance_model[self.policy.value - 1] == utility).astype(
+            float
+        )  # find the currently observed utility in the performance model
+        new_belief_unnormalized = (
+            self.belief * likelihood / (np.sum(likelihood * self.belief) + 1e-6)
+        )
         self.belief = normalize_distribution(new_belief_unnormalized, 0.01)
 
     def update_policy(self):
         belief_mul_performance = self.belief @ np.transpose(self.performance_model)
-        candidates = np.argwhere(belief_mul_performance == np.amin(belief_mul_performance)).flatten().tolist()
+        candidates = (
+            np.argwhere(belief_mul_performance == np.amin(belief_mul_performance))
+            .flatten()
+            .tolist()
+        )
         self.policy = list(Opponent.Policy)[random.choice(candidates)]
+
 
 class PhiOpponent(Opponent):
     class Phi(Enum):
@@ -466,7 +499,10 @@ class PhiOpponent(Opponent):
     @phi.setter
     def phi(self, new_phi):
         if not isinstance(new_phi, self.Phi):
-            raise ValueError(f'Phi should be represented by `PhiOpponent.Phi` class, invalid value: {new_phi} ({type(new_phi)})')
+            raise ValueError(
+                'Phi should be represented by `PhiOpponent.Phi` class, '
+                f'invalid value: {new_phi} ({type(new_phi)})'
+            )
         self._phi = new_phi
 
     def update_policy(self, ternimal_state: Tuple[Location, Location]) -> None:
@@ -476,7 +512,9 @@ class PhiOpponent(Opponent):
         Args:
             ternimal_state (Tuple[Location, Location]): Opponent (x, y) + Agent (x, y)
         """
-        terminal_state_combination = get_terminal_state_combination(self.ball_possession, ternimal_state)
+        terminal_state_combination = get_terminal_state_combination(
+            self.ball_possession, ternimal_state
+        )
 
         # phi 1 to phi 5 always keep the same policy
         if self.phi is self.Phi.ONE:
@@ -563,7 +601,7 @@ class NewPhiOpponent(Opponent):
             7: [4, 2, 3, 1, 3, 4],  # phi 7
             8: [4, 2, 1, 5, 4, 1],  # phi 8
             9: [3, 4, 2, 2, 3, 4],  # phi 9
-            10: [3, 5, 2, 4, 3, 1]  # phi 10
+            10: [3, 5, 2, 4, 3, 1],  # phi 10
         }
         self.corresponding_phi, self.strategy = self.generate_strategy(q)
 
@@ -608,25 +646,29 @@ class NewPhiOpponent(Opponent):
         Args:
             ternimal_state (Tuple[Location, Location]): Opponent (x, y) + Agent (x, y)
         """
-        terminal_state_combination = get_terminal_state_combination(self.ball_possession, ternimal_state)
+        terminal_state_combination = get_terminal_state_combination(
+            self.ball_possession, ternimal_state
+        )
         self.policy = self.Policy(self.strategy[terminal_state_combination.index(True)])
 
 
 class NewPhiNoiseOpponent(Opponent):
     def __init__(self, p_pattern: float, x=None, y=None) -> None:
         super().__init__(x, y)
-        self.p_pattern=p_pattern
+        self.p_pattern = p_pattern
         self.strategy_library = {
             7: [4, 2, 3, 1, 3, 4],  # phi 7
             8: [4, 2, 1, 5, 4, 1],  # phi 8
             9: [3, 4, 2, 2, 3, 4],  # phi 9
-            10: [3, 5, 2, 4, 3, 1]  # phi 10
+            10: [3, 5, 2, 4, 3, 1],  # phi 10
         }
         self.corresponding_phi = random.choice(list(self.strategy_library.keys()))
         self.strategy = self.strategy_library[self.corresponding_phi]
 
     def update_policy(self, ternimal_state: Tuple[Location, Location]) -> None:
-        terminal_state_combination = get_terminal_state_combination(self.ball_possession, ternimal_state)
+        terminal_state_combination = get_terminal_state_combination(
+            self.ball_possession, ternimal_state
+        )
 
         if random.random() > self.p_pattern:
             self.policy = self.Policy(random.randint(1, 5))
@@ -635,8 +677,7 @@ class NewPhiNoiseOpponent(Opponent):
 
 
 def get_terminal_state_combination(
-    ball_possession: bool,
-    ternimal_state: Tuple[Location, Location]
+    ball_possession: bool, ternimal_state: Tuple[Location, Location]
 ) -> Tuple[bool, bool, bool, bool, bool, bool]:
     agent_location, opponent_location = ternimal_state
 

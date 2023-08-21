@@ -5,7 +5,6 @@ from enum import Enum
 from typing import List, Optional, Tuple
 
 import numpy as np
-
 from utils import normalize_distribution
 
 from .env import Agent, Location, Move, PhiOpponent, SoccerGame
@@ -87,13 +86,15 @@ class BprAgent(Agent):
 
             candidates = []
 
-            loc_next_action_mapping = OrderedDict({
-                (x, y): Move.STANDBY,
-                (x, y-1): Move.UP,
-                (x, y+1): Move.DOWN,
-                (x-1, y): Move.LEFT,
-                (x+1, y): Move.RIGHT,
-            })
+            loc_next_action_mapping = OrderedDict(
+                {
+                    (x, y): Move.STANDBY,
+                    (x, y - 1): Move.UP,
+                    (x, y + 1): Move.DOWN,
+                    (x - 1, y): Move.LEFT,
+                    (x + 1, y): Move.RIGHT,
+                }
+            )
 
             for loc_next, action in loc_next_action_mapping.items():
                 if euclidean_distance(loc_next, goal) < euclidean_distance((x, y), goal):
@@ -104,43 +105,31 @@ class BprAgent(Agent):
             return candidates
 
         def remove_collision_action(
-            candidates: List[Move],
-            opponent_loc: Location,
-            op_next_loc: Optional[Location]
+            candidates: List[Move], opponent_loc: Location, op_next_loc: Optional[Location]
         ) -> None:
             if not op_next_loc:
                 return
 
             x, y = self.get_xy()
             if (
-                ((x, y-1) == op_next_loc or
-                ((x, y-1) == opponent_loc and (x, y) == op_next_loc)) and
-                Move.UP in candidates
-            ):
+                (x, y - 1) == op_next_loc or ((x, y - 1) == opponent_loc and (x, y) == op_next_loc)
+            ) and Move.UP in candidates:
                 candidates.remove(Move.UP)
             if (
-                ((x, y+1) == op_next_loc or
-                ((x, y+1) == opponent_loc and (x, y) == op_next_loc)) and
-                Move.DOWN in candidates
-            ):
+                (x, y + 1) == op_next_loc or ((x, y + 1) == opponent_loc and (x, y) == op_next_loc)
+            ) and Move.DOWN in candidates:
                 candidates.remove(Move.DOWN)
             if (
-                ((x-1, y) == op_next_loc or
-                ((x-1, y) == opponent_loc and (x, y) == op_next_loc)) and
-                Move.LEFT in candidates
-            ):
+                (x - 1, y) == op_next_loc or ((x - 1, y) == opponent_loc and (x, y) == op_next_loc)
+            ) and Move.LEFT in candidates:
                 candidates.remove(Move.LEFT)
             if (
-                ((x+1, y) == op_next_loc or
-                ((x+1, y) == opponent_loc and (x, y) == op_next_loc)) and
-                Move.RIGHT in candidates
-            ):
+                (x + 1, y) == op_next_loc or ((x + 1, y) == opponent_loc and (x, y) == op_next_loc)
+            ) and Move.RIGHT in candidates:
                 candidates.remove(Move.RIGHT)
             if (
-                ((x, y) == op_next_loc or
-                ((x, y) == opponent_loc and (x, y) == op_next_loc)) and
-                Move.STANDBY in candidates
-            ):
+                (x, y) == op_next_loc or ((x, y) == opponent_loc and (x, y) == op_next_loc)
+            ) and Move.STANDBY in candidates:
                 candidates.remove(Move.STANDBY)
 
         def remove_wrong_goal_action(candidates: List[Move], goal: Location) -> None:
@@ -158,6 +147,7 @@ class BprAgent(Agent):
         G2 = (6, 2)
         G3 = (6, 3)
 
+        # fmt: off
         if self.policy is self.Policy.ONE:
             goal = G1
 
@@ -222,10 +212,11 @@ class BprAgent(Agent):
             elif opponent_loc == (1, 4): op_next_loc = (0, 4)
             elif opponent_loc == (0, 4): op_next_loc = (0, 3)
             else: op_next_loc = None
+        # fmt: on
 
         # chase the opponent if choosing the wrong policy at the beginning
         if not self.ball_possession:
-            move_candidates = get_candidates((opponent_loc[0]-1, opponent_loc[1]))
+            move_candidates = get_candidates((opponent_loc[0] - 1, opponent_loc[1]))
         # otherwise try to get to the goal without colliding with the opponent
         else:
             move_candidates = get_candidates(goal)
@@ -241,20 +232,26 @@ class BprPlusAgent(BprAgent):
 
     def update_belief(self, utility: int):
         # posterior (belief) = prior * likelihood (performance model)
-        likelihood = ((self.performance_model[:, self.policy.value-1]) == utility).astype(float)
+        likelihood = ((self.performance_model[:, self.policy.value - 1]) == utility).astype(float)
         belief_unnormalized = likelihood * self.belief / np.sum(likelihood * self.belief)
         self.belief = normalize_distribution(belief_unnormalized, 0.01)
 
     def update_policy(self):
         belief_mul_performance = self.belief @ self.performance_model
-        candidates = np.argwhere(belief_mul_performance == np.amax(belief_mul_performance)).flatten().tolist()
+        candidates = (
+            np.argwhere(belief_mul_performance == np.amax(belief_mul_performance))
+            .flatten()
+            .tolist()
+        )
         self.policy = list(self.Policy)[random.choice(candidates)]
 
 
 class DeepBprPlusAgent(BprAgent):
     def __init__(self, x=None, y=None):
         super().__init__(x, y)
-        self._tau_hat = np.ones(self.n_policies) / self.n_policies  # initial as uniform distribution
+        self._tau_hat = (
+            np.ones(self.n_policies) / self.n_policies
+        )  # initial as uniform distribution
 
     @property
     def tau_hat(self):
@@ -274,28 +271,34 @@ class DeepBprPlusAgent(BprAgent):
             states (List[Location]): Opponent's locations.
         """
         if (2, 0) in states:
-            self.tau_hat = np.array([1, 0., 0., 0., 0.])
+            self.tau_hat = np.array([1, 0.0, 0.0, 0.0, 0.0])
         elif (2, 1) in states:
-            self.tau_hat = np.array([0., 1, 0., 0., 0.])
+            self.tau_hat = np.array([0.0, 1, 0.0, 0.0, 0.0])
         elif (2, 2) in states:
-            self.tau_hat = np.array([0., 0., 1, 0., 0.])
+            self.tau_hat = np.array([0.0, 0.0, 1, 0.0, 0.0])
         elif (2, 3) in states:
-            self.tau_hat = np.array([0., 0., 0., 1, 0.])
+            self.tau_hat = np.array([0.0, 0.0, 0.0, 1, 0.0])
         elif (2, 4) in states:
-            self.tau_hat = np.array([0., 0., 0., 0., 1])
+            self.tau_hat = np.array([0.0, 0.0, 0.0, 0.0, 1])
 
     def update_belief(self, utility: int):
         # posterior (belief) = prior * likelihood (performance model)
-        likelihood = ((self.performance_model[:, self.policy.value-1]) == utility).astype(float)
+        likelihood = ((self.performance_model[:, self.policy.value - 1]) == utility).astype(float)
         belief_unnormalized = (
-            self.tau_hat * likelihood * self.belief /
-            (np.sum(self.tau_hat * likelihood * self.belief) + 1e-6)
+            self.tau_hat
+            * likelihood
+            * self.belief
+            / (np.sum(self.tau_hat * likelihood * self.belief) + 1e-6)
         )
         self.belief = normalize_distribution(belief_unnormalized, 0.01)
 
     def update_policy(self):
         belief_mul_performance = self.belief @ self.performance_model
-        candidates = np.argwhere(belief_mul_performance == np.amax(belief_mul_performance)).flatten().tolist()
+        candidates = (
+            np.argwhere(belief_mul_performance == np.amax(belief_mul_performance))
+            .flatten()
+            .tolist()
+        )
         self.policy = list(self.Policy)[random.choice(candidates)]
 
 
@@ -309,7 +312,7 @@ class TomAgent(BprAgent):
         win_rate_threshold=0.5,
         adjustment_rate=0.2,
         indicator=1,
-        first_order_prediction=1
+        first_order_prediction=1,
     ):
         super().__init__(x, y)
         # the belief inherited from parent class is used as zero_order_belief
@@ -359,58 +362,92 @@ class TomAgent(BprAgent):
     @confidence.setter
     def confidence(self, new_confidence):
         if not 0 <= new_confidence <= 1:
-            raise ValueError(f'Confidence should be in the interval [0, 1], invalid value: {new_confidence}')
+            raise ValueError(
+                f'Confidence should be in the interval [0, 1], invalid value: {new_confidence}'
+            )
         self._confidence = new_confidence
 
     def compute_first_order_prediction(self):
         belief_mul_performance = self.first_order_belief @ np.transpose(self.performance_model)
-        candidates = np.argwhere(belief_mul_performance == np.amin(belief_mul_performance)).flatten().tolist()
+        candidates = (
+            np.argwhere(belief_mul_performance == np.amin(belief_mul_performance))
+            .flatten()
+            .tolist()
+        )
         self.first_order_prediction = random.choice(candidates) + 1
 
     def compute_integrated_belief(self):
         for op_policy in range(self.n_policies):
-            if op_policy == self.first_order_prediction-1:
-                self.integrated_belief[op_policy] = (1 - self.confidence) * self.belief[op_policy] + self.confidence
+            if op_policy == self.first_order_prediction - 1:
+                self.integrated_belief[op_policy] = (1 - self.confidence) * self.belief[
+                    op_policy
+                ] + self.confidence
             else:
                 self.integrated_belief[op_policy] = (1 - self.confidence) * self.belief[op_policy]
 
     def update_policy(self):
         belief_mul_performance = self.integrated_belief @ self.performance_model
-        candidates = np.argwhere(belief_mul_performance == np.amax(belief_mul_performance)).flatten().tolist()
+        candidates = (
+            np.argwhere(belief_mul_performance == np.amax(belief_mul_performance))
+            .flatten()
+            .tolist()
+        )
         self.policy = list(self.Policy)[random.choice(candidates)]
 
     def update_belief(self, current_n_episode, rewards):
         reward = rewards[-1]  # for calculating first-order and zero-order belief
 
         # update first_order_belief
-        likelihood_pi = ((self.performance_model[self.first_order_prediction-1]) == reward).astype(float)
-        first_order_belief_unnormalized = likelihood_pi * self.first_order_belief / (np.sum(likelihood_pi * self.first_order_belief) + 1e-6)
+        likelihood_pi = (
+            (self.performance_model[self.first_order_prediction - 1]) == reward
+        ).astype(float)
+        first_order_belief_unnormalized = (
+            likelihood_pi
+            * self.first_order_belief
+            / (np.sum(likelihood_pi * self.first_order_belief) + 1e-6)
+        )
 
         # only update first-order belief when not all beliefs are zeros
         if np.sum(first_order_belief_unnormalized) > 0:
-            self.first_order_belief = normalize_distribution(
-                first_order_belief_unnormalized, 0.01
-            )
+            self.first_order_belief = normalize_distribution(first_order_belief_unnormalized, 0.01)
 
         # update zero_order_belief
-        likelihood_tau = ((self.performance_model[:, self.policy.value-1]) == reward).astype(float)
+        likelihood_tau = ((self.performance_model[:, self.policy.value - 1]) == reward).astype(
+            float
+        )
         belief_unnormalized = likelihood_tau * self.belief / np.sum(likelihood_tau * self.belief)
         self.belief = normalize_distribution(belief_unnormalized, 0.01)
 
         # update confidence degree
         if current_n_episode > self.l_episode:
-            win_rate = np.average((np.array(rewards[current_n_episode-self.l_episode: current_n_episode-1]) > 0).astype(int))
-            previous_win_rate = np.average((np.array(rewards[current_n_episode-self.l_episode-1: current_n_episode-2]) > 0).astype(int))
+            win_rate = np.average(
+                (
+                    np.array(rewards[current_n_episode - self.l_episode : current_n_episode - 1])
+                    > 0
+                ).astype(int)
+            )
+            previous_win_rate = np.average(
+                (
+                    np.array(
+                        rewards[current_n_episode - self.l_episode - 1 : current_n_episode - 2]
+                    )
+                    > 0
+                ).astype(int)
+            )
 
             print(f'Win rate is {win_rate}')
             print(f'Previous win rate is {previous_win_rate}')
 
             if win_rate >= previous_win_rate and win_rate > self.win_rate_threshold:
-                self.confidence = ((1 - self.adjustment_rate) * self.confidence + self.adjustment_rate) * self.indicator
+                self.confidence = (
+                    (1 - self.adjustment_rate) * self.confidence + self.adjustment_rate
+                ) * self.indicator
             elif win_rate < previous_win_rate and win_rate > self.win_rate_threshold:
-                confidence = (self.confidence * np.log(win_rate) / np.log(win_rate - self.win_rate_threshold)) * self.indicator
+                confidence = (
+                    self.confidence * np.log(win_rate) / np.log(win_rate - self.win_rate_threshold)
+                ) * self.indicator
                 self.confidence = confidence if confidence <= 1 else 1
-            else :
+            else:
                 self.confidence = self.adjustment_rate * self.indicator
                 if self.indicator == 0:
                     self.indicator = 1
@@ -466,12 +503,12 @@ class BprOkrAgent(BprAgent):
         # reciprocal([148, 2, 148, 150]) = [0.0068, 0.5, 0.0068, 0.0067]
         # normalize([0.0068, 0.5, 0.0068, 0.0067]) = [0.013, 0.961, 0.013, 0.01288]
         likelihood = np.reciprocal(
-            (np.abs((self.performance_model[:, self.policy.value-1]) - utility) + 1).astype(float)
+            (np.abs((self.performance_model[:, self.policy.value - 1]) - utility) + 1).astype(float)
         )
         likelihood /= np.sum(likelihood)
         belief_unnormalized = likelihood * self.belief / (np.sum(likelihood * self.belief) + 1e-6)
         self.belief = normalize_distribution(belief_unnormalized, 0.01)
-        print(utility,self.policy.value-1,self.performance_model[:, self.policy.value-1])
+        print(utility, self.policy.value - 1, self.performance_model[:, self.policy.value - 1])
 
     def add_experience_queue(self, state: Location, opponent_action: Move):
         self.intra_belief_model.add_experience_queue(state, opponent_action)
@@ -482,8 +519,7 @@ class BprOkrAgent(BprAgent):
     def update_policy(self, integrated_belief: bool = False):
         if integrated_belief:
             self.intra_belief_model.intra_belief = (
-                self.rho * self.belief +
-                (1 - self.rho) * self.intra_belief_model.intra_belief
+                self.rho * self.belief + (1 - self.rho) * self.intra_belief_model.intra_belief
             )
             self.intra_belief_model.intra_belief = normalize_distribution(
                 self.intra_belief_model.intra_belief, 0.001
@@ -494,7 +530,11 @@ class BprOkrAgent(BprAgent):
         # e.g. tau 2 over tau 3
         # now we fix it to randomly choose between those who have the same values
         belief_mul_performance = self.intra_belief_model.intra_belief @ self.performance_model
-        candidates = np.argwhere(belief_mul_performance == np.amax(belief_mul_performance)).flatten().tolist()
+        candidates = (
+            np.argwhere(belief_mul_performance == np.amax(belief_mul_performance))
+            .flatten()
+            .tolist()
+        )
         self.policy = list(self.Policy)[random.choice(candidates)]
 
 
@@ -503,25 +543,28 @@ class BsiBaseAgent(BprAgent):
         super().__init__(x, y)
 
         # initialize phi belief
-        n_tau = len(PhiOpponent.Phi)-1
+        n_tau = len(PhiOpponent.Phi) - 1
         self._phi_belief = np.ones(n_tau) / n_tau
 
         # initialize intra-episode belief model
         # need to use it when calculating observation model
         self.intra_belief_model = IntraBeliefModel(n_policies=self.n_policies, l=l)
 
-        self.op_strategy_model = np.array([
-            [1, 0, 0, 0, 0],  # phi 1: opponent always uses tau 1
-            [0, 1, 0, 0, 0],  # phi 2: opponent always uses tau 2
-            [0, 0, 1, 0, 0],  # phi 3: opponent always uses tau 3
-            [0, 0, 0, 1, 0],  # phi 4: opponent always uses tau 4
-            [0, 0, 0, 0, 1],  # phi 5: opponent always uses tau 5
-            [0.2, 0.2, 0.2, 0.2, 0.2],  # phi 6: opponent always uses random switching
-            [0, 0, 0, 0, 0],  # phi 7
-            [0, 0, 0, 0, 0],  # phi 8
-            [0, 0, 0, 0, 0],  # phi 9
-            [0, 0, 0, 0, 0],  # phi 10
-        ], dtype=np.float64)
+        self.op_strategy_model = np.array(
+            [
+                [1, 0, 0, 0, 0],  # phi 1: opponent always uses tau 1
+                [0, 1, 0, 0, 0],  # phi 2: opponent always uses tau 2
+                [0, 0, 1, 0, 0],  # phi 3: opponent always uses tau 3
+                [0, 0, 0, 1, 0],  # phi 4: opponent always uses tau 4
+                [0, 0, 0, 0, 1],  # phi 5: opponent always uses tau 5
+                [0.2, 0.2, 0.2, 0.2, 0.2],  # phi 6: opponent always uses random switching
+                [0, 0, 0, 0, 0],  # phi 7
+                [0, 0, 0, 0, 0],  # phi 8
+                [0, 0, 0, 0, 0],  # phi 9
+                [0, 0, 0, 0, 0],  # phi 10
+            ],
+            dtype=np.float64,
+        )
 
         self.observation_model = None  # need to initialize through `set_observation_model`
         self.state_queue = []
@@ -545,7 +588,9 @@ class BsiBaseAgent(BprAgent):
 
     @phi_belief.setter
     def phi_belief(self, new_phi_belief):
-        if not isinstance(new_phi_belief, np.ndarray) or len(new_phi_belief) != len(self.phi_belief):
+        if not isinstance(new_phi_belief, np.ndarray) or len(new_phi_belief) != len(
+            self.phi_belief
+        ):
             raise ValueError(
                 f'Phi belief should be a numpy array with {len(self.phi_belief)} elements '
                 f'(invalid: {new_phi_belief})'
@@ -569,8 +614,8 @@ class BsiBaseAgent(BprAgent):
 
         if not any(terminal_state_combination):
             raise ValueError(
-                f'At least one state should be True in terminal_state_combination '
-                f'(invalid: ball_possession: {ball_possession}, agent_location: {agent_location}, opponent_location: {opponent_location})'
+                'At least one state should be True in terminal_state_combination '
+                f'(invalid: {ball_possession=}, {agent_location=}, {opponent_location=})'
             )
 
         # phi 7
@@ -638,7 +683,9 @@ class BsiBaseAgent(BprAgent):
         observation_model = self.intra_belief_model.prob_experience_queue()
         self.intra_belief_model.l = l
 
-        phi_belief_unnormalized = observation_model @ self.op_strategy_model.transpose() * self.phi_belief
+        phi_belief_unnormalized = (
+            observation_model @ self.op_strategy_model.transpose() * self.phi_belief
+        )
         self.phi_belief = normalize_distribution(phi_belief_unnormalized, 0.0001)
 
     def infer_tau(self):
@@ -674,7 +721,11 @@ class BsiAgent(BsiBaseAgent):
         # e.g. tau 2 over tau 3
         # now we fix it to randomly choose between those who have the same values
         belief_mul_performance = self.belief @ self.performance_model
-        candidates = np.argwhere(belief_mul_performance == np.amax(belief_mul_performance)).flatten().tolist()
+        candidates = (
+            np.argwhere(belief_mul_performance == np.amax(belief_mul_performance))
+            .flatten()
+            .tolist()
+        )
         self.policy = list(self.Policy)[random.choice(candidates)]
 
 
@@ -716,8 +767,7 @@ class BsiPtAgent(BsiBaseAgent):
     def update_policy(self, integrated_belief: bool = False):
         if integrated_belief:
             self.intra_belief_model.intra_belief = (
-                self.rho * self.belief +
-                (1 - self.rho) * self.intra_belief_model.intra_belief
+                self.rho * self.belief + (1 - self.rho) * self.intra_belief_model.intra_belief
             )
             self.intra_belief_model.intra_belief = normalize_distribution(
                 self.intra_belief_model.intra_belief, 0.0001
@@ -728,7 +778,11 @@ class BsiPtAgent(BsiBaseAgent):
         # e.g. tau 2 over tau 3
         # now we fix it to randomly choose between those who have the same values
         belief_mul_performance = self.intra_belief_model.intra_belief @ self.performance_model
-        candidates = np.argwhere(belief_mul_performance == np.amax(belief_mul_performance)).flatten().tolist()
+        candidates = (
+            np.argwhere(belief_mul_performance == np.amax(belief_mul_performance))
+            .flatten()
+            .tolist()
+        )
         self.policy = list(self.Policy)[random.choice(candidates)]
 
 
@@ -739,7 +793,9 @@ class IntraBeliefModel:
         self.experience_queue = []
         self.l = l  # length of experience queue
 
-        self._intra_belief = np.ones(self.n_policies) / self.n_policies  # initial as uniform distribution
+        self._intra_belief = (
+            np.ones(self.n_policies) / self.n_policies
+        )  # initial as uniform distribution
 
     @property
     def intra_belief(self):
@@ -757,9 +813,7 @@ class IntraBeliefModel:
         See equation (8) in the OKR paper.
         """
         p_q_tau = self.prob_experience_queue()
-        self.intra_belief = (
-            (p_q_tau * self.intra_belief) / np.sum(p_q_tau * self.intra_belief)
-        )
+        self.intra_belief = (p_q_tau * self.intra_belief) / np.sum(p_q_tau * self.intra_belief)
         self.intra_belief = normalize_distribution(self.intra_belief, 0.001)
 
     def reset_intra_belief(self) -> None:
@@ -774,7 +828,7 @@ class IntraBeliefModel:
             np.ndarray: The probability of generating this experience queue using each tau.
         """
         sum_of_logs = np.zeros((self.n_policies,))
-        for state, action in self.experience_queue[-self.l:]:
+        for state, action in self.experience_queue[-self.l :]:
             sum_of_logs += np.log(0.1 + np.array(self.opponent_model(state, action)))
         exp_sum_of_logs = np.exp(sum_of_logs)
         return exp_sum_of_logs / np.sum(exp_sum_of_logs)
