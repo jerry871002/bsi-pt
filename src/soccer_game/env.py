@@ -297,13 +297,15 @@ class Agent:
         self._ball_possession = False
 
     def move(self, action):
+        # fmt: off
         moves = {
-            Move.UP: (self.x, self.y - 1),
-            Move.RIGHT: (self.x + 1, self.y),
-            Move.DOWN: (self.x, self.y + 1),
-            Move.LEFT: (self.x - 1, self.y),
-            Move.STANDBY: (self.x, self.y),
+            Move.UP      : (self.x,   self.y-1),
+            Move.RIGHT   : (self.x+1, self.y),
+            Move.DOWN    : (self.x,   self.y+1),
+            Move.LEFT    : (self.x-1, self.y),
+            Move.STANDBY : (self.x  , self.y)
         }
+        # fmt: on
 
         return moves.get(action, (self.x, self.y))
 
