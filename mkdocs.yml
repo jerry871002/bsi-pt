@@ -1,5 +1,5 @@
 site_name: BSI-PT Documentation
-repo_url: https://github.com/jerry871002/bayesian-strategy-inference
+repo_url: https://github.com/jerry871002/bsi-pt
 
 nav:
   - Home: index.md
