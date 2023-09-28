@@ -67,7 +67,7 @@ class BaseballGame:
             self.opponent = Opponent()
 
         self.steps = 0
-        self._state = [0, 0]
+        self.state = [0, 0]
 
     def generate_performance_model(self) -> np.ndarray:
         """
