@@ -4,7 +4,6 @@ from enum import Enum
 from typing import List, Tuple
 
 import numpy as np
-
 from utils import normalize_distribution
 
 Location = Tuple[int, int]
@@ -38,7 +37,7 @@ class NavigationGame:
         new_phi_opponent=False,
         new_phi_noise_opponent=False,
         p_pattern=0,
-        q=0
+        q=0,
     ):
         # set dimension of the field
         self.width = width
@@ -98,9 +97,7 @@ class NavigationGame:
 
         # each row represent an opponent policy (tau)
         # each column represent an agent policy (pi)
-        performance_model = [
-            [0 for _ in list(agent.Policy)] for _ in list(opponent.Policy)
-        ]
+        performance_model = [[0 for _ in list(agent.Policy)] for _ in list(opponent.Policy)]
 
         for agent_policy in list(agent.Policy):
             for opponent_policy in list(opponent.Policy):
@@ -113,7 +110,7 @@ class NavigationGame:
                     rewards += reward
                     if done:
                         break
-                performance_model[opponent_policy.value-1][agent_policy.value-1] = rewards
+                performance_model[opponent_policy.value - 1][agent_policy.value - 1] = rewards
         return np.array(performance_model)
 
     def reset(self) -> State:
@@ -173,9 +170,8 @@ class NavigationGame:
 
     def location_valid(self, location: Location) -> bool:
         x, y = location
-        if (
-            (0 <= x < self.width and 0 <= y < self.height) and
-            (y != self.height // 2 or (x, y) in (self.G1, self.G2, self.G3, self.G4, self.G5))
+        if (0 <= x < self.width and 0 <= y < self.height) and (
+            y != self.height // 2 or (x, y) in (self.G1, self.G2, self.G3, self.G4, self.G5)
         ):
             return True
         else:
@@ -208,14 +204,15 @@ class NavigationGame:
         opponent_G4 = opponent_loc_ == self.G4 or opponent_loc == self.G4
         opponent_G5 = opponent_loc_ == self.G5 or opponent_loc == self.G5
 
+        # fmt: off
         if agent_G1 and opponent_G1: return True, self.reward_G1
         elif agent_G2 and opponent_G2: return True, self.reward_G2
         elif agent_G3 and opponent_G3: return True, self.reward_G3
         elif agent_G4 and opponent_G4: return True, self.reward_G4
         elif agent_G5 and opponent_G5: return True, self.reward_G5
-        elif (
-            any((agent_G1, agent_G2, agent_G3, agent_G4, agent_G5)) and
-            any((opponent_G1, opponent_G2, opponent_G3, opponent_G4, opponent_G5))
+        # fmt: on
+        elif any((agent_G1, agent_G2, agent_G3, agent_G4, agent_G5)) and any(
+            (opponent_G1, opponent_G2, opponent_G3, opponent_G4, opponent_G5)
         ):
             return True, self.reward_error
 
@@ -258,11 +255,13 @@ class NavigationGame:
                     print('.', end='')
             print()
 
+
 class Agent:
     def __init__(self, x=None, y=None):
         self.set_xy(x, y)
 
     def move(self, action):
+        # fmt: off
         moves = {
             Move.UP      : (self.x,   self.y-1),
             Move.RIGHT   : (self.x+1, self.y),
@@ -270,6 +269,7 @@ class Agent:
             Move.LEFT    : (self.x-1, self.y),
             Move.STANDBY : (self.x  , self.y)
         }
+        # fmt: on
 
         return moves.get(action, (self.x, self.y))
 
@@ -313,6 +313,7 @@ class Opponent(Agent):
         Returns:
             Move: The action to take.
         """
+        # fmt: off
         if self.policy is self.Policy.ONE:
             # 1 . 2 . . . . 3 . . . . 4 . 5
             #               *
@@ -387,14 +388,13 @@ class Opponent(Agent):
             if self.get_xy() == (13, 6): return Move.RIGHT
             if self.get_xy() == (14, 6): return Move.UP
             if self.get_xy() == (14, 5): return Move.UP
+        # fmt: on
 
         # `Move.STANDBY` when already arrived at the goal
         if self.get_xy() in ((0, 4), (2, 4), (7, 4), (12, 4), (14, 4)):
             return Move.STANDBY
 
-        raise ValueError(
-            f'Opponent with policy {self.policy} shouldn\'t be in {self.get_xy()}'
-        )
+        raise ValueError(f'Opponent with policy {self.policy} shouldn\'t be in {self.get_xy()}')
 
     def switch_policy(self, switch_point: Location, policy1: Policy, policy2: Policy):
         if self.get_xy() == switch_point:
@@ -433,15 +433,22 @@ class BprOpponent(Opponent):
             utility (int): The reward the agent gets in a episode.
         """
         # find the currently observed utility in the performance model
-        likelihood = (self.performance_model[self.policy.value-1] == utility).astype(float)
+        likelihood = (self.performance_model[self.policy.value - 1] == utility).astype(float)
         # posterior (belief) = prior * likelihood (performance model)
-        new_belief_unnormalized = self.belief * likelihood / (np.sum(likelihood * self.belief) + 1e-6)
+        new_belief_unnormalized = (
+            self.belief * likelihood / (np.sum(likelihood * self.belief) + 1e-6)
+        )
         self.belief = normalize_distribution(new_belief_unnormalized, 0.01)
 
     def update_policy(self) -> None:
         belief_mul_performance = self.belief @ np.transpose(self.performance_model)
-        candidates = np.argwhere(belief_mul_performance == np.amin(belief_mul_performance)).flatten().tolist()
+        candidates = (
+            np.argwhere(belief_mul_performance == np.amin(belief_mul_performance))
+            .flatten()
+            .tolist()
+        )
         self.policy = list(Opponent.Policy)[random.choice(candidates)]
+
 
 class PhiOpponent(Opponent):
     class Phi(Enum):
@@ -469,7 +476,10 @@ class PhiOpponent(Opponent):
     @phi.setter
     def phi(self, new_phi):
         if not isinstance(new_phi, self.Phi):
-            raise ValueError(f'Phi should be represented by `PhiOpponent.Phi` class, invalid value: {new_phi} ({type(new_phi)})')
+            raise ValueError(
+                'Phi should be represented by `PhiOpponent.Phi` class, '
+                f'invalid value: {new_phi} ({type(new_phi)})'
+            )
         self._phi = new_phi
 
     def update_policy(self, ternimal_state: Tuple[Location, Location]) -> None:
@@ -501,11 +511,15 @@ class PhiOpponent(Opponent):
                 self.policy = self.Policy.THREE
             elif terminal_state_combination[7]:
                 self.policy = self.Policy.ONE
-            elif any((
-                terminal_state_combination[0], terminal_state_combination[2],
-                terminal_state_combination[3], terminal_state_combination[4],
-                terminal_state_combination[6]
-            )):
+            elif any(
+                (
+                    terminal_state_combination[0],
+                    terminal_state_combination[2],
+                    terminal_state_combination[3],
+                    terminal_state_combination[4],
+                    terminal_state_combination[6],
+                )
+            ):
                 self.policy = self.Policy.TWO
             elif terminal_state_combination[5]:
                 self.policy = self.Policy.FOUR
@@ -525,15 +539,22 @@ class PhiOpponent(Opponent):
                 self.policy = self.Policy.ONE
         # phi 9
         elif self.phi is self.Phi.NINE:
-            if any((
-                terminal_state_combination[0], terminal_state_combination[1],
-                terminal_state_combination[2], terminal_state_combination[9]
-            )):
+            if any(
+                (
+                    terminal_state_combination[0],
+                    terminal_state_combination[1],
+                    terminal_state_combination[2],
+                    terminal_state_combination[9],
+                )
+            ):
                 self.policy = self.Policy.FIVE
-            elif any((
-                terminal_state_combination[3], terminal_state_combination[4],
-                terminal_state_combination[5]
-            )):
+            elif any(
+                (
+                    terminal_state_combination[3],
+                    terminal_state_combination[4],
+                    terminal_state_combination[5],
+                )
+            ):
                 self.policy = self.Policy.FOUR
             elif terminal_state_combination[6]:
                 self.policy = self.Policy.TWO
@@ -574,7 +595,7 @@ class NewPhiOpponent(Opponent):
             7: [2, 3, 2, 2, 2, 4, 2, 1, 3, 5],  # phi 7
             8: [3, 5, 4, 2, 1, 2, 1, 3, 5, 4],  # phi 8
             9: [5, 5, 5, 4, 4, 4, 2, 1, 3, 5],  # phi 9
-            10: [5, 1, 3, 4, 2, 2, 1, 3, 5, 4]  # phi 10
+            10: [5, 1, 3, 4, 2, 2, 1, 3, 5, 4],  # phi 10
         }
         self.corresponding_phi, self.strategy = self.generate_strategy(q)
 
@@ -631,7 +652,7 @@ class NewPhiNoiseOpponent(Opponent):
             7: [2, 3, 2, 2, 2, 4, 2, 1, 3, 5],  # phi 7
             8: [3, 5, 4, 2, 1, 2, 1, 3, 5, 4],  # phi 8
             9: [5, 5, 5, 4, 4, 4, 2, 1, 3, 5],  # phi 9
-            10: [5, 1, 3, 4, 2, 2, 1, 3, 5, 4]  # phi 10
+            10: [5, 1, 3, 4, 2, 2, 1, 3, 5, 4],  # phi 10
         }
         self.corresponding_phi = random.choice(list(self.strategy_library.keys()))
         self.strategy = self.strategy_library[self.corresponding_phi]
