@@ -4,6 +4,26 @@ Welcome to the BSI-PT project! This project implements the BSI-PT (Bayesian Stra
 
 In the experiments, we compare our BSI-PT framework with previous BPR variants including [BPR+](https://researchspace.csir.co.za/dspace/bitstream/handle/10204/9091/Hernandez-Leal_2016.pdf?sequence=1&isAllowed=y)[^bpr], [DPN-BPR+](https://drive.google.com/file/d/1FMxWLF3hAgKTomp-foczAY3ppfF-GE-2/view)[^dpn-bpr], and [Bayes-OKR](https://www.sciencedirect.com/science/article/abs/pii/S0950705122001605)[^okr] in the [extended batter vs. pitcher game (EBvPG)](environments/baseball_game.md) defined in the paper.
 
+## Authors
+- Kuei-Tso Lee
+- Yen-Yun Huang
+- Je-Ruei Yang
+- Sheng-Jyh Wang
+
+## Citation
+
+Please site our paper if you find this project useful.
+
+```bibtex
+@article{lee2023opponent,
+  title={Opponent Exploitation Based on Bayesian Strategy Inference and Policy Tracking},
+  author={Lee, Kuei-Tso and Huang, Yen-Yun and Yang, Je-Ruei and Wang, Sheng-Jyh},
+  journal={IEEE Transactions on Games},
+  year={2023},
+  publisher={IEEE}
+}
+```
+
 ## Getting Started
 
 To reproduce the results in the paper, use the `scripts/run_exps_and_plot.sh` script. There are two methods for setting up the environment to run the script.
