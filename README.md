@@ -26,4 +26,4 @@ Please site our paper if you find this repository useful.
 
 ## Documentation
 
-Check [the documentation](https://jerry871002.github.io/bayesian-strategy-inference/) to see how to run the experiments.
+Check [the documentation](https://jerry871002.github.io/bsi-pt/) to see how to run the experiments.
